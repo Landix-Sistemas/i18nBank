@@ -9,8 +9,8 @@ http.createServer(function(req,res) {
 	});
 	var LanguageTranslatorV2 = require('watson-developer-cloud/language-translator/v2');
 	var language_translator = new LanguageTranslatorV2({
-	  username: '189e9255-1e52-42b8-8eb7-88e355ee0aff',
-	  password: 'oPEfzKgcXdWF',
+	  username: '<<username>>',
+	  password: '<<password>>',
 	  url: 'https://gateway.watsonplatform.net/language-translator/api'
 	});
 	language_translator.translate({
