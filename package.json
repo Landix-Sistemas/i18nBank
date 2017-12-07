@@ -1,0 +1,17 @@
+{
+  "name": "i18nbank",
+  "version": "1.0.0",
+  "description": "I18N Bank",
+  "scripts": {
+    "gun": "node database",
+    "watson": "node back",
+    "front": "cd front & quasar dev",
+    "electron": "cd front/electron & quasar dev",
+    "dev": "start npm run gun && start npm run watson && start npm run electron && npm run front",
+    "start": "npm run dev",
+    "build": "cd front && quasar build && cd electron && quasar build",
+    "postinstall": "cd back && npm install && cd.. && cd database && npm install && cd.. && cd front && npm install && cd electron && npm install"
+  },
+  "author": "Felipe F.",
+  "license": "ISC"
+}

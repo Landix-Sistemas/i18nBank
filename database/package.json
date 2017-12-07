@@ -1,0 +1,16 @@
+{
+  "name": "i18nbankdatabase",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "Felipe F.",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.16.1",
+    "gun": "^0.8.7",
+    "sqlite.gun": "^1.4.0"
+  }
+}
