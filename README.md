@@ -2,9 +2,14 @@
 
 > This project provide a way to store yours translations and manage json and resx files. This project use <a href="http://gun.js.org/"> GunDB </a> to store the tranlations and Watson from IBM to help with the translations.
 
-# Watson Configuration
+## Watson Configuration
 Update the file in back/index.js and put your translation bluemix username and password
 
+## Screenshot
+
+<img alt="i18nBank1" style="border-width:0" src="http://www.landix.com.br/cdn/i18nBank/i18nBank1.png" />
+<img alt="i18nBank2" style="border-width:0" src="http://www.landix.com.br/cdn/i18nBank/i18nBank2.png" />
+<img alt="i18nBank3" style="border-width:0" src="http://www.landix.com.br/cdn/i18nBank/i18nBank3.png" />
 
 ## Build Setup
 
