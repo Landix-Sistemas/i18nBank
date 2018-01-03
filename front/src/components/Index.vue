@@ -212,7 +212,7 @@
               <q-checkbox
                 v-for="(file, index) in selectedFiles"
                 v-model="file.selected"
-                :label="file.name"
+                :label="file.name + '(' + file.language + ')'"
                 v-bind:key="index"
                 @input="onNewLabelFileClick(file)"
               />
@@ -247,6 +247,12 @@
 </template>
 
 <script>
+
+let dbLang = {
+  'pt-BR': 1,
+  'en-US': 2,
+  'es': 3
+}
 
 import {
   QLayout,
@@ -468,7 +474,7 @@ export default {
     },
 
     /**
-     * Add a JSON or RESX translation file
+     * Add a JSON or RESX or DB3 translation file
      *
      * @return {void}
      */
@@ -477,7 +483,7 @@ export default {
       if (!this.file.length) return
 
       // Check if the file was already add
-      if (_.find(this.selectedFiles, { 'path': this.file[0].path })) {
+      if (_.find(this.selectedFiles, { 'path': this.file[0].path, 'language': this.fileLanguage })) {
         return
       }
 
@@ -539,6 +545,32 @@ export default {
                 })
               }
             })
+          }
+          else if (this.file[0].name.endsWith('.db3')) {
+            // eslint-disable-next-line no-undef
+            const SQLite = getSQLite()
+            var db = new SQLite.Database(this.file[0].path)
+            db.serialize(() => {
+              db.all('SELECT CDSTR, DSSTR FROM TRSTRING WHERE CDLANG = ?', dbLang[this.fileLanguage], (err, rows) => {
+                if (err) {
+                  console.log(err.stack)
+                }
+                else {
+                  let novolabel = []
+                  for (const row of rows) {
+                    novolabel.push({
+                      fileID: fileId,
+                      group: '',
+                      key: row.CDSTR,
+                      value: row.DSSTR,
+                      language: that.fileLanguage
+                    })
+                  }
+                  this.translations = (this.translations || []).concat(novolabel)
+                }
+              })
+            })
+            db.close()
           }
         }
       }
@@ -628,36 +660,83 @@ export default {
       // Update all selected files
       _.each(_.groupBy(this.selectedFiles, 'selected')['true'], (file) => {
         if (file.id) {
-          let fileTranslations = translations[file.id]
-          let editedLabelIndex = fileTranslations ? _.findIndex(fileTranslations, (item) => { return item.key === this.edit.data[Object.keys(this.edit.data)[0]][0].key }) : -1
-          let newTranslation
+          if (file.name.endsWith('.resx') || file.name.endsWith('.json')) {
+            let fileTranslations = translations[file.id]
+            let editedLabelIndex = fileTranslations ? _.findIndex(fileTranslations, (item) => { return item.key === this.edit.data[Object.keys(this.edit.data)[0]][0].key }) : -1
+            let newTranslation
 
-          // if already exist the key in the file just change the value else create a translate object
-          if (editedLabelIndex >= 0) {
-            fileTranslations[editedLabelIndex].value = this.edit.text
-          }
-          else {
-            newTranslation = {
-              fileID: file.id,
-              group: this.edit.data[Object.keys(this.edit.data)[0]][0].group,
-              key: this.edit.data[Object.keys(this.edit.data)[0]][0].key,
-              value: this.edit.text,
-              language: this.edit.langTarget
+            // if already exist the key in the file just change the value else create a translate object
+            if (editedLabelIndex >= 0) {
+              fileTranslations[editedLabelIndex].value = this.edit.text
+            }
+            else {
+              newTranslation = {
+                fileID: file.id,
+                group: this.edit.data[Object.keys(this.edit.data)[0]][0].group,
+                key: this.edit.data[Object.keys(this.edit.data)[0]][0].key,
+                value: this.edit.text,
+                language: this.edit.langTarget
+              }
+
+              fileTranslations.push(newTranslation)
+              this.translations.push(newTranslation)
             }
 
-            fileTranslations.push(newTranslation)
-            this.translations.push(newTranslation)
+            // formata as labels no formato necessário para salvar o arquivo
+            promises.push(this.formatJSONToFile(file.path.split('.').pop(), fileTranslations)
+              .then((newFileString) => {
+                // grava os dados no arquivo
+                return this.writeFile(file.path, newFileString)
+              })
+              .catch((err) => {
+                return console.log(err)
+              }))
           }
-
-          // formata as labels no formato necessário para salvar o arquivo
-          promises.push(this.formatJSONToFile(file.path.split('.').pop(), fileTranslations)
-            .then((newFileString) => {
-              // grava os dados no arquivo
-              return this.writeFile(file.path, newFileString)
+          else if (file.name.endsWith('.db3')) {
+            let fileTranslations = translations[file.id]
+            let editedLabelIndex = fileTranslations ? _.findIndex(fileTranslations, (item) => { return item.key === this.edit.data[Object.keys(this.edit.data)[0]][0].key }) : -1
+            let newTranslation
+            // eslint-disable-next-line no-undef
+            const SQLite = getSQLite()
+            var db = new SQLite.Database(file.path)
+            db.serialize(() => {
+              db.all('SELECT COUNT(*) AS EXISTE FROM TRSTRING WHERE CDSTR = ?', this.edit.data[Object.keys(this.edit.data)[0]][0].key, (err, rows) => {
+                if (err) {
+                  console.log(err.stack)
+                }
+                else {
+                  for (const row of rows) {
+                    if (row.EXISTE > 0) {
+                      var stmt = db.prepare('UPDATE TRSTRING SET DSSTR = ? WHERE CDSTR = ? AND CDLANG = ?', this.edit.text, this.edit.data[Object.keys(this.edit.data)[0]][0].key, dbLang[this.edit.langTarget])
+                    }
+                    else {
+                      stmt = db.prepare('INSERT INTO TRSTRING VALUES (?, ?, ?, ?)', this.edit.data[Object.keys(this.edit.data)[0]][0].key, dbLang[this.edit.langTarget], this.edit.text, '0')
+                    }
+                  }
+                  // Exibir erro
+                  stmt.run((err) => { console.log(err) })
+                  stmt.finalize()
+                  db.close()
+                }
+              })
             })
-            .catch((err) => {
-              return console.log(err)
-            }))
+            // if already exist the key in the file just change the value else create a translate object
+            if (editedLabelIndex >= 0) {
+              fileTranslations[editedLabelIndex].value = this.edit.text
+            }
+            else {
+              newTranslation = {
+                fileID: file.id,
+                group: this.edit.data[Object.keys(this.edit.data)[0]][0].group,
+                key: this.edit.data[Object.keys(this.edit.data)[0]][0].key,
+                value: this.edit.text,
+                language: this.edit.langTarget
+              }
+
+              fileTranslations.push(newTranslation)
+              this.translations.push(newTranslation)
+            }
+          }
         }
         else {
           // Grava no banco
@@ -1011,35 +1090,56 @@ export default {
           let labelValue = _.find(this.newLabel.labels, (item) => item.language === file.language).model
 
           if (file.id) {
-            // Grava no arquivo
-            let label = {
-              fileID: file.id,
-              group: this.formatGroup(this.newLabel.group),
-              key: this.newLabel.key,
-              value: labelValue,
-              language: file.language
+            if (file.name.endsWith('.resx') || file.name.endsWith('.json')) {
+              // Grava no arquivo
+              let label = {
+                fileID: file.id,
+                group: this.formatGroup(this.newLabel.group),
+                key: this.newLabel.key,
+                value: labelValue,
+                language: file.language
+              }
+
+              // união entre as labels já existente no arquivo com as novas labels traduzidas
+              let grpTrand = _.groupBy(this.translations, 'fileID')[file.id]
+              grpTrand ? grpTrand.push(label) : [].push(label)
+
+              // formata as labels no formato necessário para salvar o arquivo
+              return this.formatJSONToFile(file.path.split('.').pop(), grpTrand)
+                .then((newFileString) => {
+                  // grava os dados no arquivo
+                  return this.writeFile(file.path, newFileString)
+                    .then(() => {
+                      // Atualiza a lista de traduções
+                      this.translations.push(label)
+                      this.$refs.newTranslation.close()
+                      return true
+                    })
+                })
+                .catch(() => {
+                  this.$refs.newTranslation.close()
+                  return console.log('err')
+                })
             }
-
-            // união entre as labels já existente no arquivo com as novas labels traduzidas
-            let grpTrand = _.groupBy(this.translations, 'fileID')[file.id]
-            grpTrand ? grpTrand.push(label) : [].push(label)
-
-            // formata as labels no formato necessário para salvar o arquivo
-            return this.formatJSONToFile(file.path.split('.').pop(), grpTrand)
-              .then((newFileString) => {
-                // grava os dados no arquivo
-                return this.writeFile(file.path, newFileString)
-                  .then(() => {
-                    // Atualiza a lista de traduções
-                    this.translations.push(label)
-                    this.$refs.newTranslation.close()
-                    return true
-                  })
-              })
-              .catch(() => {
-                this.$refs.newTranslation.close()
-                return console.log('err')
-              })
+            else if (file.name.endsWith('.db3')) {
+              // Grava no arquivo
+              let label = {
+                fileID: file.id,
+                group: this.formatGroup(this.newLabel.group),
+                key: this.newLabel.key,
+                value: labelValue,
+                language: file.language
+              }
+              this.translations.push(label)
+              // eslint-disable-next-line no-undef
+              const SQLite = getSQLite()
+              var db = new SQLite.Database(file.path)
+              var stmt = db.prepare('INSERT INTO TRSTRING VALUES (?, ?, ?, ?)', this.newLabel.key, dbLang[file.language], labelValue, '0')
+              // Exibir erro
+              stmt.run((err) => { console.log(err) })
+              stmt.finalize()
+              db.close()
+            }
           }
           else {
             // Grava no banco

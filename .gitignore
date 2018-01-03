@@ -1,5 +1,6 @@
 /.svn
 /.vscode
+/node_modules
 */node_modules
 data.json
 npm-debug.log
