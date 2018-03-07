@@ -17,7 +17,7 @@ function resolve (dir) {
 
 module.exports = {
   entry: {
-    app: './src/main.js'
+    app: './src/main.ts'
   },
   output: {
     path: path.resolve(__dirname, '../dist'),
@@ -26,7 +26,7 @@ module.exports = {
     chunkFilename: 'js/[id].[chunkhash].js'
   },
   resolve: {
-    extensions: ['.js', '.vue', '.json'],
+    extensions: ['.js', '.ts', '.json'],
     modules: [
       resolve('src'),
       resolve('node_modules')
@@ -35,28 +35,26 @@ module.exports = {
   },
   module: {
     rules: [
-      { // eslint
-        enforce: 'pre',
-        test: /\.(vue|js)$/,
-        loader: 'eslint-loader',
-        include: projectRoot,
-        exclude: /node_modules/,
-        options: {
-          formatter: require('eslint-friendly-formatter')
-        }
+      { 
+        test: /\.ts$/, 
+        exclude: /node_modules/, enforce: 'pre', 
+        loader: 'tslint-loader' 
       },
       {
-        test: /\.js$/,
-        loader: 'babel-loader',
-        include: projectRoot,
-        exclude: /node_modules/
+        test: /\.ts$/,
+        exclude: /node_modules|vue\/src/,
+        loader: 'ts-loader',
+        options: {
+          appendTsSuffixTo: [/\.vue$/]
+        }
       },
       {
         test: /\.vue$/,
         loader: 'vue-loader',
         options: {
+          esModule: true,
           postcss: cssUtils.postcss,
-          loaders: merge({js: 'babel-loader'}, cssUtils.styleLoaders({
+          loaders: merge(cssUtils.styleLoaders({
             sourceMap: useCssSourceMap,
             extract: env.prod
           }))
@@ -95,6 +93,9 @@ module.exports = {
       minimize: env.prod,
       options: {
         context: path.resolve(__dirname, '../src'),
+        eslint: {
+          formatter: require('eslint-friendly-formatter')
+        },
         postcss: cssUtils.postcss
       }
     }),
@@ -104,5 +105,6 @@ module.exports = {
   ],
   performance: {
     hints: false
-  }
+  },
+  devtool: 'source-map'
 }
