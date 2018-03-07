@@ -3,9 +3,8 @@ import VueRouter from 'vue-router'
 
 Vue.use(VueRouter)
 
-function load (component) {
-  // '@' is aliased to src/components
-  return () => import(`@/${component}.vue`)
+function load (component: string) {
+  return () => import(`src/components/${component}.vue`)
 }
 
 export default new VueRouter({
@@ -22,7 +21,7 @@ export default new VueRouter({
    */
 
   mode: 'hash',
-  scrollBehavior: () => ({ y: 0 }),
+  // scrollBehavior: () => ({ y: 0 }),
 
   routes: [
     { path: '/', component: load('Index') },

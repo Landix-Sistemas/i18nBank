@@ -31,23 +31,22 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { QBtn, QIcon } from 'quasar'
+import Vue from 'vue'
+import Component from 'vue-class-component'
 
-export default {
+@Component({
   components: {
     QBtn,
     QIcon
-  },
-  data () {
-    return {
-      canGoBack: window.history.length > 1
-    }
-  },
-  methods: {
-    goBack () {
-      window.history.go(-1)
-    }
+  }
+})
+export default class Error404 extends Vue {
+  canGoBack: boolean = window.history.length > 1
+
+  goBack () {
+    window.history.go(-1)
   }
 }
 </script>

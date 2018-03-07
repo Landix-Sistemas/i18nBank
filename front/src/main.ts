@@ -15,12 +15,10 @@ import Vue from 'vue'
 import Quasar from 'quasar'
 import 'assets/script/valMapEnd'
 import router from './router'
-import VueGun from 'vue-gun'
-import VueResource from 'vue-resource'
+import * as VueGun from 'vue-gun'
 
 Vue.config.productionTip = false
 Vue.use(Quasar) // Install Quasar Framework
-Vue.use(VueResource)
 Vue.use(VueGun, {
   peers: ['ws://localhost:3000/gun']
 })
@@ -38,6 +36,6 @@ Quasar.start(() => {
   new Vue({
     el: '#q-app',
     router,
-    render: h => h(require('./App').default)
+    render: h => h(require('./App.vue').default)
   })
 })

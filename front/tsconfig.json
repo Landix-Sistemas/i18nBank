@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "strict": true,
+    "lib": [
+      "dom",
+      "es7",
+      "es2015",
+      "es2015.promise"
+    ],
+    "types": [
+     "electron"
+    ],
+    "module": "commonjs",
+    // "module": "es2015",
+    "moduleResolution": "node",
+    "isolatedModules": false,
+    "allowJs": true,
+    "sourceMap": true,
+    "noImplicitAny": true,
+    "emitDecoratorMetadata": true,
+    "allowSyntheticDefaultImports": false,
+    "experimentalDecorators": true,
+    "noImplicitThis": true,
+    "strictNullChecks": false,
+    "removeComments": true,
+    "suppressImplicitAnyIndexErrors": false
+  },
+  "include": [
+    "./src/**/*.ts"
+  ],
+  "compileOnSave": false
+}
