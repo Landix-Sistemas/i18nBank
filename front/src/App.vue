@@ -1,19 +1,16 @@
-<template lang="html">
-  <!-- Don't drop "q-app" class -->
-  <div id="q-app">
-    <router-view />
-  </div>
+<template>
+  <router-view />
 </template>
 
 <script lang="ts">
-/*
- * Root component
- */
-import Vue from 'vue'
-import Component from 'vue-class-component'
-@Component({})
+import { Component, Vue } from 'vue-property-decorator'
+
+@Component({
+  name: 'App'
+})
 export default class App extends Vue {
 }
 </script>
 
-<style></style>
+<style>
+</style>

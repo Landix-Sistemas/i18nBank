@@ -1,7 +1,22 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "es2016",
+    "module": "esnext",
     "strict": true,
+    "jsx": "preserve",
+    "moduleResolution": "node",
+    "isolatedModules": false,
+    "allowJs": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "allowSyntheticDefaultImports": false,
+    "noImplicitAny": false,
+    "noImplicitThis": true,
+    "strictNullChecks": false,
+    "removeComments": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "sourceMap": true,
+    "baseUrl": ".",
     "lib": [
       "dom",
       "es7",
@@ -9,25 +24,21 @@
       "es2015.promise"
     ],
     "types": [
-     "electron"
+      "electron"
     ],
-    "module": "commonjs",
-    // "module": "es2015",
-    "moduleResolution": "node",
-    "isolatedModules": false,
-    "allowJs": true,
-    "sourceMap": true,
-    "noImplicitAny": true,
-    "emitDecoratorMetadata": true,
-    "allowSyntheticDefaultImports": false,
-    "experimentalDecorators": true,
-    "noImplicitThis": true,
-    "strictNullChecks": false,
-    "removeComments": true,
-    "suppressImplicitAnyIndexErrors": false
+    "paths": {
+      "@/*": [
+        "src/*"
+      ]
+    }
   },
   "include": [
-    "./src/**/*.ts"
+    "src/**/*.ts",
+    "src/**/*.vue",
+    "tests/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
   ],
   "compileOnSave": false
 }

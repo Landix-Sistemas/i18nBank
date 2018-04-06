@@ -9,6 +9,8 @@
   "author": "Felipe F.",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.18.0",
+    "ldapjs": "^1.0.2",
     "watson-developer-cloud": "^2.41.1"
   }
 }

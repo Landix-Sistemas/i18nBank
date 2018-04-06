@@ -1,23 +1,24 @@
 {
+  "defaultSeverity": "warning",
+  "extends": [
+    "tslint:recommended"
+  ],
   "rules": {
+    "quotemark": [true, "single", "avoid-escape"],
+    "indent": [true, "spaces", 2],
+    "interface-name": false,
+    "ordered-imports": false,
+    "object-literal-sort-keys": false,
+    "no-consecutive-blank-lines": false,
     "class-name": true,
     "comment-format": [
       true,
       "check-space"
     ],
-    "indent": [
-      true,
-      "spaces"
-    ],
     "one-line": [
       true,
       "check-open-brace",
       "check-whitespace"
-    ],
-    "quotemark": [
-      true,
-      "single",
-      "avoid-escape"
     ],
     "semicolon": [
       true,
@@ -58,7 +59,11 @@
       true,
       "allow-null-check"
     ],
+    "trailing-comma": [true, {"multiline": "never", "singleline": "never"}],
+    "max-line-length": false,
+    "member-access": false,
     "no-var-keyword": true,
+    "no-console": false,
     "no-var-requires": false,
     "no-internal-module": true,
     "no-trailing-whitespace": true,
@@ -66,6 +71,7 @@
     "no-eval": true,
     "no-null-keyword": false,
     "prefer-const": true,
+    "space-before-function-paren": [true, {"anonymous": "always", "named": "always", "asyncArrow": "always"}],
     "jsdoc-format": true
   }
 }

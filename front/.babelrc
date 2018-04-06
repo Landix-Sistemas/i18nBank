@@ -1,5 +1,8 @@
 {
-  "presets": [["es2015", {"modules": false}], "stage-2"],
-  "plugins": ["transform-decorators-legacy", "transform-runtime"],
+  "presets": [
+    [ "@babel/env", {"modules": false} ],
+    "@babel/stage-2"
+  ],
+  "plugins": ["@babel/transform-runtime"],
   "comments": false
 }
