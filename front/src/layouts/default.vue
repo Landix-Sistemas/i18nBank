@@ -11,9 +11,7 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator'
 
-@Component({
-  name: 'LayoutDefault'
-})
+@Component({ name: 'LayoutDefault' })
 export default class LayoutDefault extends Vue {
 }
 </script>

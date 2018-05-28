@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "es2016",
-    "module": "esnext",
+    "module": "esnext", // "commonjs" "es2015"
     "strict": true,
     "jsx": "preserve",
     "moduleResolution": "node",
@@ -17,28 +17,16 @@
     "suppressImplicitAnyIndexErrors": true,
     "sourceMap": true,
     "baseUrl": ".",
+    "outDir": "tmp_js",
     "lib": [
       "dom",
       "es7",
       "es2015",
       "es2015.promise"
-    ],
-    "types": [
-      "electron"
-    ],
-    "paths": {
-      "@/*": [
-        "src/*"
-      ]
-    }
+    ]
   },
   "include": [
-    "src/**/*.ts",
-    "src/**/*.vue",
-    "tests/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
+    "./src/**/*.ts"
   ],
   "compileOnSave": false
 }

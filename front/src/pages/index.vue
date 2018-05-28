@@ -249,7 +249,9 @@ import * as pify from 'pify'
 import axios from 'axios'
 import resx2js from 'resx/resx2js'
 import js2resx from 'resx/js2resx'
-import PouchDB from 'pouchdb'
+import * as PouchDB_browswer from 'pouchdb-browser'
+import * as fs from 'fs'
+const PouchDB = PouchDB_browswer['default']
 
 const db = {
   languages: null,
@@ -277,9 +279,7 @@ const db = {
 //   // handle error
 // });
 
-let getFS: () => any
-
-function compareGroupKey(a: GroupedTranslation, b: GroupedTranslation): number {
+function compareGroupKey (a: GroupedTranslation, b: GroupedTranslation): number {
   if (a.group > b.group) { return 1 }
   if (a.group < b.group) { return -1 }
   if (a.group === b.group) {
@@ -289,7 +289,7 @@ function compareGroupKey(a: GroupedTranslation, b: GroupedTranslation): number {
   return 0
 }
 
-function compareGroupKey2(group: string, key: string, b: GroupedTranslation): number {
+function compareGroupKey2 (group: string, key: string, b: GroupedTranslation): number {
   if (group > b.group) { return 1 }
   if (group < b.group) { return -1 }
   if (group === b.group) {
@@ -613,14 +613,14 @@ export default class Index extends Vue {
   }
 
   convertDbLabelToGroupedTranslation (dbLabel: DbLabel): GroupedTranslation {
-    const label = {
+    const label: GroupedTranslation = {
       key: dbLabel._id,
       group: dbLabel.group,
       filesIDs: [],
       lang: {}
     }
     for (const t of dbLabel.translations) {
-      label.lang[t.language] = t.value
+      label.lang[t.language] = { value: t.value }
     }
     return label
   }
@@ -639,7 +639,7 @@ export default class Index extends Vue {
 
     // Check if the file was already added
     for (const localFile of this.localFiles) {
-      if (localFile.path === fileInfo.path) {
+      if (localFile.path === (fileInfo as any).path) {
         return
       }
     }
@@ -653,24 +653,22 @@ export default class Index extends Vue {
       id: fileId,
       name: fileInfo.name,
       language: fileLanguage,
-      path: fileInfo.path,
+      path: (fileInfo as any).path,
       selected: false
     })
 
     const reader = new FileReader()
-    console.log('P1')
 
     // On File load
     reader.onload = (e) => {
-      console.log('P2')
       const result: string = (e.target as any).result
       if (result) {
         if (fileInfo.name.endsWith('.json')) {
           // Parse JSON file and create a translation object
           const contents = JSON.parse(result)
-          let position = 0
-          for (const groupName in contents) {
-            for (const labelId in contents[groupName]) {
+          // let position = 0
+          for (const groupName of Object.keys(contents)) {
+            for (const labelId of Object.keys(contents[groupName])) {
               // position = this.findLabelPosition(groupName, labelId, position)
               this.insertNewLabel({
                 fileID: fileId,
@@ -683,17 +681,14 @@ export default class Index extends Vue {
           }
         }
         else if (fileInfo.name.endsWith('.resx')) {
-          console.log('P3')
           // Parse RESX file and create a translation object
           resx2js(result, (err: Error, res: StringKeyValue) => {
-            console.log('P4')
             if (err) {
               console.log('error converting file to json', err)
             }
             else {
-              let position = 0
-              console.log('P5')
-              for (const labelId in res) {
+              // let position = 0
+              for (const labelId of Object.keys(res)) {
                 const groupName = this.UnFormatGroup(labelId.split('_')[0], 'resx')
                 // position = this.findLabelPosition(groupName, labelId, position)
                 this.insertNewLabel({
@@ -1069,7 +1064,7 @@ export default class Index extends Vue {
     */
   writeFile(filePath: string, newFileString: string) {
     // eslint-disable-next-line no-undef
-    return pify(getFS().writeFile)(filePath, newFileString)
+    return pify(fs.writeFile)(filePath, newFileString)
   }
 
    /*
@@ -1220,7 +1215,7 @@ export default class Index extends Vue {
 
   insertNewLabel(novo: {fileID: string, group: string, key: string, value: string, language: string}, override = false) {
     Promise.resolve().then(async () => {
-      const existing = await db.labels.get(novo.key).catch(() => null)
+      const existing = await db.labels.get(novo.key).catch((): undefined => null)
       if (!existing) {
         const label: DbLabel = {
           _id: novo.key,
@@ -1264,7 +1259,7 @@ export default class Index extends Vue {
     if (!this.newLabel.key) return
     if (!this.newLabel.group) return
     Promise.resolve().then(async () => {
-      const existing = await db.labels.get(this.newLabel.key).catch(() => null)
+      const existing = await db.labels.get(this.newLabel.key).catch((): void => undefined)
       if (!existing) {
         const label: DbLabel = {
           _id: this.newLabel.key,
@@ -1396,7 +1391,7 @@ export default class Index extends Vue {
     * @return {string} the GUID.
     */
   guid(): string {
-    function s4(): string {
+    function s4 (): string {
       return Math.floor((1 + Math.random()) * 0x10000)
         .toString(16)
         .substring(1)

@@ -1,47 +1,38 @@
 {
   "name": "i18nbankweb",
-  "productName": "I18N Bank",
   "version": "0.0.1",
   "description": "I18N Bank",
+  "productName": "I18N Bank",
   "cordovaId": "org.cordova.quasar.app",
   "author": "Felipe F. <ffreitas@landix.com.br>",
   "private": true,
-  "main": "dist/index.js",
   "scripts": {
-    "serve": "vue-cli-service serve --open",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint",
-    "start": "electron-forge start",
-    "package": "electron-forge package",
-    "make": "electron-forge make",
-    "t1": "vue-cli-service build & cpx ./src-electron/index.js ./dist & electron-forge package",
-    "t2": "start vue-cli-service serve && electron ./src-electron/index.dev.js"
+    "build": "quasar build",
+    "start": "quasar dev",
+    "unit": "cross-env BABEL_ENV=test karma start test/unit/karma.conf.js --single-run"
   },
   "dependencies": {
-    "@types/pouchdb": "^6.3.2",
     "axios": "^0.18.0",
-    "lodash": "^4.17.5",
+    "lodash": "^4.17.10",
     "pify": "^3.0.0",
-    "pouchdb": "^6.4.3",
-    "resx": "^1.1.0"
+    "pouchdb-browser": "^6.4.3",
+    "resx": "^1.1.0",
+    "vue-i18n": "^7.7.0"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "^3.0.0-beta.6",
-    "@vue/cli-plugin-typescript": "^3.0.0-beta.6",
-    "@vue/cli-service": "^3.0.0-beta.6",
-    "cpx": "^1.5.0",
-    "electron-compile": "^6.4.2",
-    "electron-forge": "^5.1.1",
-    "electron-prebuilt-compile": "1.8.4",
-    "quasar-extras": "^1.0.2",
-    "quasar-framework": "^0.15.6",
-    "stylus": "^0.54.5",
-    "stylus-loader": "^3.0.1",
-    "vue": "^2.5.13",
-    "vue-class-component": "^6.0.0",
-    "vue-property-decorator": "^6.0.0",
-    "vue-router": "^3.0.1",
-    "vue-template-compiler": "^2.5.13"
+    "@types/pouchdb": "^6.3.2",
+    "devtron": "1.4.0",
+    "electron": "2.0.0",
+    "electron-debug": "1.5.0",
+    "electron-devtools-installer": "2.2.4",
+    "electron-packager": "^12.0.1",
+    "hawk": "^7.0.7",
+    "quasar-cli": "^0.16.0",
+    "ts-loader": "^4.3.0",
+    "tslint": "^5.10.0",
+    "tslint-loader": "^3.6.0",
+    "typescript": "^2.8.3",
+    "vue-property-decorator": "^6.1.0"
   },
   "engines": {
     "node": ">= 8.9.0",
@@ -51,37 +42,5 @@
     "> 1%",
     "last 2 versions",
     "not ie <= 10"
-  ],
-  "config": {
-    "forge": {
-      "make_targets": {
-        "win32": [
-          "squirrel"
-        ],
-        "darwin": [
-          "zip"
-        ],
-        "linux": [
-          "deb",
-          "rpm"
-        ]
-      },
-      "electronPackagerConfig": {
-        "packageManager": "yarn"
-      },
-      "electronWinstallerConfig": {
-        "name": "my_new_app"
-      },
-      "electronInstallerDebian": {},
-      "electronInstallerRedhat": {},
-      "github_repository": {
-        "owner": "",
-        "name": ""
-      },
-      "windowsStoreConfig": {
-        "packageName": "",
-        "name": "mynewapp"
-      }
-    }
-  }
+  ]
 }
