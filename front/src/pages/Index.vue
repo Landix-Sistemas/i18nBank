@@ -123,7 +123,6 @@ export default {
     addFile () {
       console.log('addFile')
       console.log(this.file)
-      // console.log(this.file.length)
       // Check if a file was seletected
       if (!this.file.length) return
 
