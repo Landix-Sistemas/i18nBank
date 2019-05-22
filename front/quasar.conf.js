@@ -47,7 +47,8 @@ module.exports = function (ctx) {
         'QInput',
         'QSelect',
         'QCheckbox',
-        'QInnerLoading'
+        'QInnerLoading',
+        'QBar'
       ],
 
       directives: [
@@ -58,7 +59,8 @@ module.exports = function (ctx) {
       // Quasar plugins
       plugins: [
         'Notify',
-        'LocalStorage'
+        'LocalStorage',
+        'Loading'
       ],
 
       // iconSet: 'ionicons-v4'

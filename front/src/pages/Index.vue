@@ -1,6 +1,6 @@
 <template>
   <q-layout>
-    <q-header elevated color="dark" class="q-pa-md q-gutter-y-sm bg-black text-white titlebar">
+    <q-header elevated class="q-pa-md q-gutter-y-sm bg-black text-white titlebar">
       <q-toolbar-title inset>
         I18N Bank &amp; Manager
       </q-toolbar-title>
@@ -58,21 +58,21 @@
         </q-card-section>
       </q-card>
 
-      <q-dialog v-model="importFilesDialog" :content-css="{minWidth: '50vw', minHeight: '320px'}">
-      <q-card>
-        <q-card-section class="row items-center" color="dark">
-          <div class="text-h6">Importar arquivo de tradução</div>
+      <q-dialog v-model="importFilesDialog" persistent>
+      <q-card style="width: 700px; max-width: 80vw;">
+        <q-bar class="row items-center bg-black text-white">
+          <div class="text-h6 q-pl-sm">Importar arquivo de tradução</div>
           <q-space />
           <q-btn icon="close" flat round dense v-close-popup />
-        </q-card-section>
+        </q-bar>
         <q-card-section class="layout-padding importFilesContent">
           <div class="row">
 
-            <!--<div class="col-md-6">
+            <div class="col-md-6">
               <p v-for="file in selectedFiles" :key="file.id">
                 {{ file.name }} | Idioma: {{ file.language }}
               </p>
-            </div>-->
+            </div>
             <div class="col-md-6">
               <div class="row">
                 <input
@@ -81,7 +81,7 @@
                   class="input-file"
                 >
               </div>
-              <!--<div class="row">
+              <div class="row">
                 <div style="width: 500px; max-width: 90vw;">
                   <q-select
                     v-model="fileLanguage"
@@ -89,18 +89,19 @@
                     :options="languages"
                   />
                 </div>
-              </div>-->
+              </div>
             </div>
 
           </div>
         </q-card-section>
 
-        <q-card-actions align="right">
+        <q-bar align="right" class="row bg-black text-white">
+          <q-space />
           <q-btn flat @click="addFile">
             <q-icon name="check" />
             Confirmar
           </q-btn>
-        </q-card-actions>
+        </q-bar>
       </q-card>
     </q-dialog>
 
@@ -109,27 +110,39 @@
 </template>
 
 <script>
+/* emilia porque tem que colocar este import se já temno quasar.config plugins ??? */
+import {
+  Loading
+} from 'quasar'
+import _ from 'Lodash'
 export default {
   name: 'i18n',
   data () {
     return {
       importFilesDialog: false,
       file: null,
+      selectedFiles: [],
+      languages: ['Espanhol', 'Ingles'],
       selectedLanguages: [],
+      fileLanguage: null,
       filteredTranslations: []
     }
   },
   methods: {
+    /**
+     * Add a JSON or RESX translation file
+     *
+     * @return {void}
+     */
     addFile () {
       console.log('addFile')
-      console.log(this.file)
       // Check if a file was seletected
       if (!this.file.length) return
 
       console.log('addFile2')
 
       // Check if the file was already add
-      /* if (_.find(this.selectedFiles, { 'path': this.file[0].path })) {
+      if (_.find(this.selectedFiles, { 'path': this.file[0].path })) {
         return
       }
 
@@ -151,7 +164,7 @@ export default {
         path: this.file[0].path,
         selected: false
       })
-
+      /*
       let reader = new FileReader()
 
       // On File load
@@ -199,6 +212,20 @@ export default {
 
       reader.readAsText(this.file[0])
       this.$refs.importFilesModal.close() */
+    },
+
+    /**
+     * Generate a new GUID.
+     *
+     * @return {string} the GUID.
+     */
+    guid () {
+      function s4 () {
+        return Math.floor((1 + Math.random()) * 0x10000)
+          .toString(16)
+          .substring(1)
+      }
+      return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4()
     }
   }
 }
