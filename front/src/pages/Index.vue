@@ -97,7 +97,7 @@
 
         <q-bar align="right" class="row bg-black text-white">
           <q-space />
-          <q-btn flat @click="addFile">
+          <q-btn flat @click="addFile" v-close-popup>
             <q-icon name="check" />
             Confirmar
           </q-btn>
@@ -122,10 +122,39 @@ export default {
       importFilesDialog: false,
       file: null,
       selectedFiles: [],
-      languages: ['Espanhol', 'Ingles'],
+      languages: ['Espanhol', 'Inglês', 'Português'],
       selectedLanguages: [],
       fileLanguage: null,
-      filteredTranslations: []
+      translations: [],
+      filteredTranslations: this.groupedTranslations
+    }
+  },
+  watch: {
+    /* search (value) {
+      Loading.show()
+
+      Promise.resolve()
+        .then(() => {
+          this.searchByTerm(value)
+          return Loading.hide()
+        })
+        .catch(() => true)
+    }, */
+    translations () {
+      console.log(this.groupedTranslations)
+      this.filteredTranslations = this.groupedTranslations
+    }
+  },
+  computed: {
+    /**
+     * Group the list of translation objects by key and language
+     *
+     * @return {object} grouped translation objects
+     */
+    groupedTranslations () {
+      return _.map(_.groupBy(this.translations, 'key'), (value, key) => {
+        return { key: key, lang: _.groupBy(value, 'language') }
+      })
     }
   },
   methods: {
@@ -138,8 +167,6 @@ export default {
       console.log('addFile')
       // Check if a file was seletected
       if (!this.file.length) return
-
-      console.log('addFile2')
 
       // Check if the file was already add
       if (_.find(this.selectedFiles, { 'path': this.file[0].path })) {
@@ -164,7 +191,6 @@ export default {
         path: this.file[0].path,
         selected: false
       })
-      /*
       let reader = new FileReader()
 
       // On File load
@@ -184,15 +210,13 @@ export default {
                 })
               })
             })
-          }
-          else if (this.file[0].name.endsWith('.resx')) {
+          } else if (this.file[0].name.endsWith('.resx')) {
             // Parse RESX file and create a translation object
             const resx2js = require('resx/resx2js')
             resx2js(e.target.result, (err, res) => {
               if (err) {
                 console.log('error converting file to json', err)
-              }
-              else {
+              } else {
                 _.each(res, (value, key) => {
                   this.translations.push({
                     fileID: fileId,
@@ -202,6 +226,7 @@ export default {
                     language: that.fileLanguage
                   })
                 })
+                // console.log(this.translations)
               }
             })
           }
@@ -211,7 +236,9 @@ export default {
       reader.onloadend = () => { Loading.hide() }
 
       reader.readAsText(this.file[0])
-      this.$refs.importFilesModal.close() */
+      // this.$refs.importFilesModal.close()
+      // importFilesDialog = false
+      // v-close-popup
     },
 
     /**
@@ -226,6 +253,20 @@ export default {
           .substring(1)
       }
       return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4()
+    },
+
+    UnFormatGroup (group, fileType) {
+      if (fileType === 'resx') {
+        if (group === 'lbl') {
+          return 'label'
+        } else if (group === 'msg') {
+          return 'message'
+        } else {
+          return group
+        }
+      } else {
+        return group
+      }
     }
   }
 }
