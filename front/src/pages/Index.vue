@@ -30,7 +30,13 @@
           </div>
           <div class="row">
             <div class="col-md-12">
-              <table class="q-table bordered striped-odd horizontal-separator vertical-separator responsive">
+              <!--<q-table
+                :data="data"
+                :columns="columns"
+                row-key="name"
+                :pagination.sync="pagination"
+              />-->
+              <q-markup-table class="q-table bordered striped-odd horizontal-separator vertical-separator responsive">
                 <thead>
                   <tr>
                     <th class="text-left">Chave</th>
@@ -52,7 +58,7 @@
                     </td>
                   </tr>
                 </tbody>
-              </table>
+              </q-markup-table>
             </div>
           </div>
         </q-card-section>
@@ -119,6 +125,37 @@ export default {
   name: 'i18n',
   data () {
     return {
+      pagination: {
+        sortBy: 'name',
+        descending: false,
+        page: 1,
+        rowsPerPage: 10
+      },
+      columns: [
+        {
+          name: 'chave',
+          required: true,
+          label: 'Chave',
+          align: 'left',
+          field: row => row.name,
+          format: val => `${val}`,
+          sortable: true
+        }/*,
+        { name: 'espanhol', align: 'center', label: 'Espanhol', field: 'calories', sortable: false },
+        { name: 'ingles', align: 'center', label: 'Inglês', field: 'fat', sortable: false } */
+      ],
+      data: [], /* [
+         {
+          name: 'Frozen Yogurt',
+          calories: 159,
+          fat: 6.0
+        },
+        {
+          name: 'Teste 2',
+          calories: 9,
+          fat: 1.0
+        }
+      ], */
       importFilesDialog: false,
       file: null,
       selectedFiles: [],
@@ -141,8 +178,18 @@ export default {
         .catch(() => true)
     }, */
     translations () {
-      console.log(this.groupedTranslations)
+      // console.log(this.groupedTranslations)
+      // console.log(this.selectedLanguages)
       this.filteredTranslations = this.groupedTranslations
+      console.log(this.filteredTranslations)
+      let i
+      for (i = 0; i < this.selectedLanguages.length; i++) {
+        this.columns.push({ name: this.selectedLanguages[i], align: 'center', label: this.selectedLanguages[i], field: 'calories', sortable: false })
+      }
+      // this.columns.push({ name: 'ingles', align: 'center', label: 'Inglês', field: 'fat', sortable: false })
+      for (i in this.filteredTranslations) {
+        this.data.push({ name: this.filteredTranslations[i].lang.Espanhol[0].group, calories: this.filteredTranslations[i].lang.Espanhol[0].value })
+      }
     }
   },
   computed: {
@@ -164,7 +211,6 @@ export default {
      * @return {void}
      */
     addFile () {
-      console.log('addFile')
       // Check if a file was seletected
       if (!this.file.length) return
 
@@ -236,9 +282,6 @@ export default {
       reader.onloadend = () => { Loading.hide() }
 
       reader.readAsText(this.file[0])
-      // this.$refs.importFilesModal.close()
-      // importFilesDialog = false
-      // v-close-popup
     },
 
     /**

@@ -48,7 +48,12 @@ module.exports = function (ctx) {
         'QSelect',
         'QCheckbox',
         'QInnerLoading',
-        'QBar'
+        'QBar',
+        'QTable',
+        'QTh',
+        'QTr',
+        'QTd',
+        'QMarkupTable'
       ],
 
       directives: [
