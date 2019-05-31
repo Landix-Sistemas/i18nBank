@@ -30,13 +30,13 @@
           </div>
           <div class="row">
             <div class="col-md-12">
-              <!--<q-table
+              <q-table
                 :data="data"
                 :columns="columns"
                 row-key="name"
                 :pagination.sync="pagination"
-              />-->
-              <q-markup-table class="q-table bordered striped-odd horizontal-separator vertical-separator responsive">
+              />
+              <!--<q-markup-table class="q-table bordered striped-odd horizontal-separator vertical-separator responsive">
                 <thead>
                   <tr>
                     <th class="text-left">Chave</th>
@@ -58,7 +58,7 @@
                     </td>
                   </tr>
                 </tbody>
-              </q-markup-table>
+              </q-markup-table>-->
             </div>
           </div>
         </q-card-section>
@@ -131,31 +131,8 @@ export default {
         page: 1,
         rowsPerPage: 10
       },
-      columns: [
-        {
-          name: 'chave',
-          required: true,
-          label: 'Chave',
-          align: 'left',
-          field: row => row.name,
-          format: val => `${val}`,
-          sortable: true
-        }/*,
-        { name: 'espanhol', align: 'center', label: 'Espanhol', field: 'calories', sortable: false },
-        { name: 'ingles', align: 'center', label: 'Inglês', field: 'fat', sortable: false } */
-      ],
-      data: [], /* [
-         {
-          name: 'Frozen Yogurt',
-          calories: 159,
-          fat: 6.0
-        },
-        {
-          name: 'Teste 2',
-          calories: 9,
-          fat: 1.0
-        }
-      ], */
+      columns: [],
+      data: [],
       importFilesDialog: false,
       file: null,
       selectedFiles: [],
@@ -178,18 +155,35 @@ export default {
         .catch(() => true)
     }, */
     translations () {
-      // console.log(this.groupedTranslations)
-      // console.log(this.selectedLanguages)
       this.filteredTranslations = this.groupedTranslations
-      console.log(this.filteredTranslations)
+      this.columns = []
+      this.columns.push({ name: 'chave', required: true, label: 'Chave', align: 'left', field: row => row.name, format: val => `${val}`, sortable: true })
+      this.data = []
       let i
       for (i = 0; i < this.selectedLanguages.length; i++) {
-        this.columns.push({ name: this.selectedLanguages[i], align: 'center', label: this.selectedLanguages[i], field: 'calories', sortable: false })
+        this.columns.push({ name: this.selectedLanguages[i], align: 'center', label: this.selectedLanguages[i], field: this.selectedLanguages[i], sortable: false })
       }
-      // this.columns.push({ name: 'ingles', align: 'center', label: 'Inglês', field: 'fat', sortable: false })
-      for (i in this.filteredTranslations) {
-        this.data.push({ name: this.filteredTranslations[i].lang.Espanhol[0].group, calories: this.filteredTranslations[i].lang.Espanhol[0].value })
-      }
+      // console.log(this.columns)
+      let vlrname
+      this.filteredTranslations.forEach((element, index, array) => {
+        for (var teste in element.lang) {
+          console.log(element.lang[teste])
+          // console.log('eh ' + teste)
+          element.lang[teste].forEach((elementLang, indexLang, arrayLang) => {
+            if (element.key === 'undefined') {
+              vlrname = elementLang.group
+            } else {
+              vlrname = element.key
+            }
+            // console.log(elementLang.value)
+            // this.data.push({ name: vlrname, teste: elementLang.value })
+            this.data.push({ name: vlrname, Espanhol: elementLang.value, Inglês: elementLang.value })
+            // this.data.push({ name: vlrname, Espanhol: elementLang[teste].value, Inglês: elementLang[teste].value })
+            // this.data.push({ name: vlrname, calories: elementLang.value })
+            // this.data.push({ name: vlrname, selectedLanguages[0]: elementLang.value })
+          })
+        }
+      })
     }
   },
   computed: {
