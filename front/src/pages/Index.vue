@@ -35,7 +35,54 @@
                 :columns="columns"
                 row-key="name"
                 :pagination.sync="pagination"
-              />
+              >
+                <template v-slot:body="props">
+                  <q-tr :props="props">
+                    <q-td key="chave" :props="props">{{ props.row.name }}</q-td>
+                    <q-td key="Espanhol" :props="props">
+                      {{ props.row.Espanhol }}
+                      <q-popup-edit v-model="props.row.Espanhol" title="Update" buttons>
+                        <q-input v-model="props.row.Espanhol" dense autofocus />
+                      </q-popup-edit>
+                    </q-td>
+                    <q-td key="Inglês" :props="props">
+                      {{ props.row.Inglês }}
+                      <q-popup-edit v-model="props.row.Inglês" title="Update Inglês" buttons>
+                        <q-input v-model="props.row.Inglês" dense autofocus />
+                      </q-popup-edit>
+                    </q-td>
+                  </q-tr>
+                </template>
+                <!--<template v-slot:body="props">
+                  <q-tr :props="props">
+                    <q-td key="chave" :props="props">{{ props.row.name }}</q-td>
+                    <q-td v-for="(lang, index) in selectedLanguages" :props="props" :key="index">
+                      {{props.row.lang[lang] ? props.row.lang[lang] : '-'}}
+                      console.log(props.row.lang)
+                      <q-btn small flat>
+                        <q-icon name="edit" />
+                      </q-btn>
+                      <q-btn small flat>
+                        <q-icon name="fa-database" />
+                      </q-btn>
+                    </q-td>
+                  </q-tr>
+                </template>-->
+                <!--<template v-slot:body="props">
+                  <q-tr :props="props" v-for="(label, index) in filteredTranslations" :key="index">
+                    <q-td key="chave" :props="props">{{ props.row.name }}</q-td>
+                    <q-td class="text-left" v-for="(lang, index) in selectedLanguages" :key="index" :data-th="lang">
+                      {{label.lang[lang] ? label.lang[lang][0].value : '-'}}
+                      <q-btn small flat>
+                        <q-icon name="edit" />
+                      </q-btn>
+                      <q-btn small flat>
+                        <q-icon name="fa-database" />
+                      </q-btn>
+                    </q-td>
+                  </q-tr>
+                </template>-->
+              </q-table>
               <!--<q-markup-table class="q-table bordered striped-odd horizontal-separator vertical-separator responsive">
                 <thead>
                   <tr>
