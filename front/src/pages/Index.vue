@@ -204,25 +204,25 @@ export default {
     translations () {
       this.filteredTranslations = this.groupedTranslations
       this.columns = []
-      this.columns.push({ name: 'chave', required: true, label: 'Chave', align: 'left', field: row => row.name, format: val => `${val}`, sortable: true })
+      // this.columns.push({ name: 'chave', required: true, label: 'Chave', align: 'left', field: row => row.name, format: val => `${val}`, sortable: true })
+      this.columns.push({ name: 'chave', required: true, label: 'Chave', align: 'left', field: row => row.name, format: val => `${val}` })
       this.data = []
       let i
       for (i = 0; i < this.selectedLanguages.length; i++) {
         this.columns.push({ name: this.selectedLanguages[i], align: 'center', label: this.selectedLanguages[i], field: this.selectedLanguages[i], sortable: false })
       }
       // console.log(this.columns)
-      let vlrname
-      this.filteredTranslations.forEach((element, index, array) => {
+      // console.log(this.selectedLanguages)
+      console.log(this.filteredTranslations)
+      // let vlrname
+      /* this.filteredTranslations.forEach((element, index, array) => {
         for (var teste in element.lang) {
-          console.log(element.lang[teste])
-          // console.log('eh ' + teste)
           element.lang[teste].forEach((elementLang, indexLang, arrayLang) => {
             if (element.key === 'undefined') {
               vlrname = elementLang.group
             } else {
               vlrname = element.key
             }
-            // console.log(elementLang.value)
             // this.data.push({ name: vlrname, teste: elementLang.value })
             this.data.push({ name: vlrname, Espanhol: elementLang.value, Inglês: elementLang.value })
             // this.data.push({ name: vlrname, Espanhol: elementLang[teste].value, Inglês: elementLang[teste].value })
@@ -230,7 +230,77 @@ export default {
             // this.data.push({ name: vlrname, selectedLanguages[0]: elementLang.value })
           })
         }
+      }) */
+      /* let vlrvalueE = '-'
+      let vlrvalueI = '-'
+      let keyPrior = '-'
+      let vlrvalueEPrior = '-'
+      let vlrvalueIPrior = '-' */
+      this.filteredTranslations.forEach((element, index, array) => {
+        console.log(element.key)
+        console.log(element.lang['Espanhol'] ? element.lang['Espanhol'][0].value : '-')
+        console.log(element.lang['Inglês'] ? element.lang['Inglês'][0].value : '-')
+        this.data.push({ name: element.key, Espanhol: element.lang['Espanhol'] ? element.lang['Espanhol'][0].value : '-', Inglês: element.lang['Inglês'] ? element.lang['Inglês'][0].value : '-' })
+        /* for (var teste in element.lang) {
+          element.lang[teste].forEach((elementLang, indexLang, arrayLang) => {
+            // if (element.key === 'undefined') {
+            //  vlrname = elementLang.group
+            // } else {
+            //  vlrname = element.key
+            // }
+            vlrname = element.key
+            if (elementLang.language === 'Espanhol') {
+              vlrvalueE = elementLang.value
+            } if (elementLang.language === 'Inglês') {
+              vlrvalueI = elementLang.value
+            }
+            if (vlrname !== keyPrior) {
+              if (keyPrior !== '-') {
+                // this.data.push({ name: vlrname, Espanhol: vlrvalueE, Inglês: vlrvalueI })
+                // this.data.push({ name: keyPrior, Espanhol: vlrvalueEPrior, Inglês: vlrvalueIPrior })
+                // vlrvalueE = '-'
+                // vlrvalueI = '-'
+              }
+              keyPrior = vlrname
+              vlrvalueEPrior = vlrvalueE
+              vlrvalueIPrior = vlrvalueI
+              if (elementLang.language === 'Espanhol') {
+                vlrvalueEPrior = elementLang.value
+                vlrvalueIPrior = '-'
+              } if (elementLang.language === 'Inglês') {
+                vlrvalueIPrior = elementLang.value
+                vlrvalueEPrior = '-'
+              }
+            } else {
+              // vlrvalueEPrior = '-'
+              // vlrvalueIPrior = '-'
+              if (elementLang.language === 'Espanhol') {
+                // vlrvalueE = elementLang.value
+                vlrvalueEPrior = elementLang.value
+                vlrvalueIPrior = '-'
+              } if (elementLang.language === 'Inglês') {
+                // vlrvalueI = elementLang.value
+                vlrvalueIPrior = elementLang.value
+                vlrvalueEPrior = '-'
+              }
+            }
+            // this.data.push({ name: vlrname, Espanhol: elementLang.value, Inglês: elementLang.value })
+            // this.data.push({ name: 'emi', Espanhol: 'emi', Inglês: 'emi' })
+            // this.data.push({ name: 'emi', Espanhol: 'emiRep', Inglês: 'emiRep' })
+            // emilia colocar aqui para cada linguagem procurar o vlrname(chave nela)
+            // console.log(vlrname + ' = ' + elementLang.value + ' em ' + elementLang.language)
+          })
+          // this.data.push({ name: vlrname, Espanhol: 'emi1', Inglês: 'emi2' })
+          // this.data.push({ name: vlrname, Espanhol: element.lang[teste].value, Inglês: element.lang[teste].value })
+          // this.data.push({ name: vlrname, Espanhol: vlrvalueE, Inglês: vlrvalueI })
+          // console.log(vlrvalueE + vlrvalueI)
+          // console.log('P')
+          // vlrvalueE = '-'
+          // vlrvalueI = '-'
+        } */
+        // this.data.push({ name: keyPrior, Espanhol: vlrvalueEPrior, Inglês: vlrvalueIPrior })
       })
+      // this.data.push({ name: keyPrior, Espanhol: vlrvalueEPrior, Inglês: vlrvalueIPrior })
     }
   },
   computed: {
@@ -308,7 +378,8 @@ export default {
                   this.translations.push({
                     fileID: fileId,
                     group: this.UnFormatGroup(key.split('_')[0], 'resx'),
-                    key: key.split('_')[1],
+                    /* key: key.split('_')[1], emilia */
+                    key: key.split('_')[0],
                     value: value,
                     language: that.fileLanguage
                   })
