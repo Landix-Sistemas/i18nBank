@@ -36,7 +36,7 @@
                 row-key="name"
                 :pagination.sync="pagination"
               >
-                <template v-slot:body="props">
+                <!--<template v-slot:body="props">
                   <q-tr :props="props">
                     <q-td key="chave" :props="props">{{ props.row.name }}</q-td>
                     <q-td key="Espanhol" :props="props">
@@ -50,6 +50,22 @@
                       <q-popup-edit v-model="props.row.Inglês" title="Update Inglês" buttons>
                         <q-input v-model="props.row.Inglês" dense autofocus />
                       </q-popup-edit>
+                    </q-td>
+                  </q-tr>
+                </template>-->
+                <template v-slot:body="props">
+                  <q-tr :props="props">
+                    <q-td key="chave" :props="props">{{ props.row.name }}</q-td>
+                    <q-td v-for="(lang, index) in selectedLanguages" :props="props" :key="lang">
+                      {{props.cols[index + 1].value}}
+                      <!--{{props.row.Inglês}}-->
+                      <!--{{props.row.[lang] ? props.row.[lang] : '-'}}-->
+                      <q-btn small flat>
+                        <q-icon name="edit" />
+                      </q-btn>
+                      <q-btn small flat>
+                        <q-icon name="save_alt" />
+                      </q-btn>
                     </q-td>
                   </q-tr>
                 </template>
@@ -204,103 +220,22 @@ export default {
     translations () {
       this.filteredTranslations = this.groupedTranslations
       this.columns = []
-      // this.columns.push({ name: 'chave', required: true, label: 'Chave', align: 'left', field: row => row.name, format: val => `${val}`, sortable: true })
-      this.columns.push({ name: 'chave', required: true, label: 'Chave', align: 'left', field: row => row.name, format: val => `${val}` })
+      this.columns.push({ name: 'chave', required: true, label: 'Chave', align: 'left', field: row => row.name, format: val => `${val}`, sortable: true })
       this.data = []
+      let objData
       let i
       for (i = 0; i < this.selectedLanguages.length; i++) {
         this.columns.push({ name: this.selectedLanguages[i], align: 'center', label: this.selectedLanguages[i], field: this.selectedLanguages[i], sortable: false })
       }
-      // console.log(this.columns)
-      // console.log(this.selectedLanguages)
       console.log(this.filteredTranslations)
-      // let vlrname
-      /* this.filteredTranslations.forEach((element, index, array) => {
-        for (var teste in element.lang) {
-          element.lang[teste].forEach((elementLang, indexLang, arrayLang) => {
-            if (element.key === 'undefined') {
-              vlrname = elementLang.group
-            } else {
-              vlrname = element.key
-            }
-            // this.data.push({ name: vlrname, teste: elementLang.value })
-            this.data.push({ name: vlrname, Espanhol: elementLang.value, Inglês: elementLang.value })
-            // this.data.push({ name: vlrname, Espanhol: elementLang[teste].value, Inglês: elementLang[teste].value })
-            // this.data.push({ name: vlrname, calories: elementLang.value })
-            // this.data.push({ name: vlrname, selectedLanguages[0]: elementLang.value })
-          })
-        }
-      }) */
-      /* let vlrvalueE = '-'
-      let vlrvalueI = '-'
-      let keyPrior = '-'
-      let vlrvalueEPrior = '-'
-      let vlrvalueIPrior = '-' */
       this.filteredTranslations.forEach((element, index, array) => {
-        console.log(element.key)
-        console.log(element.lang['Espanhol'] ? element.lang['Espanhol'][0].value : '-')
-        console.log(element.lang['Inglês'] ? element.lang['Inglês'][0].value : '-')
-        this.data.push({ name: element.key, Espanhol: element.lang['Espanhol'] ? element.lang['Espanhol'][0].value : '-', Inglês: element.lang['Inglês'] ? element.lang['Inglês'][0].value : '-' })
-        /* for (var teste in element.lang) {
-          element.lang[teste].forEach((elementLang, indexLang, arrayLang) => {
-            // if (element.key === 'undefined') {
-            //  vlrname = elementLang.group
-            // } else {
-            //  vlrname = element.key
-            // }
-            vlrname = element.key
-            if (elementLang.language === 'Espanhol') {
-              vlrvalueE = elementLang.value
-            } if (elementLang.language === 'Inglês') {
-              vlrvalueI = elementLang.value
-            }
-            if (vlrname !== keyPrior) {
-              if (keyPrior !== '-') {
-                // this.data.push({ name: vlrname, Espanhol: vlrvalueE, Inglês: vlrvalueI })
-                // this.data.push({ name: keyPrior, Espanhol: vlrvalueEPrior, Inglês: vlrvalueIPrior })
-                // vlrvalueE = '-'
-                // vlrvalueI = '-'
-              }
-              keyPrior = vlrname
-              vlrvalueEPrior = vlrvalueE
-              vlrvalueIPrior = vlrvalueI
-              if (elementLang.language === 'Espanhol') {
-                vlrvalueEPrior = elementLang.value
-                vlrvalueIPrior = '-'
-              } if (elementLang.language === 'Inglês') {
-                vlrvalueIPrior = elementLang.value
-                vlrvalueEPrior = '-'
-              }
-            } else {
-              // vlrvalueEPrior = '-'
-              // vlrvalueIPrior = '-'
-              if (elementLang.language === 'Espanhol') {
-                // vlrvalueE = elementLang.value
-                vlrvalueEPrior = elementLang.value
-                vlrvalueIPrior = '-'
-              } if (elementLang.language === 'Inglês') {
-                // vlrvalueI = elementLang.value
-                vlrvalueIPrior = elementLang.value
-                vlrvalueEPrior = '-'
-              }
-            }
-            // this.data.push({ name: vlrname, Espanhol: elementLang.value, Inglês: elementLang.value })
-            // this.data.push({ name: 'emi', Espanhol: 'emi', Inglês: 'emi' })
-            // this.data.push({ name: 'emi', Espanhol: 'emiRep', Inglês: 'emiRep' })
-            // emilia colocar aqui para cada linguagem procurar o vlrname(chave nela)
-            // console.log(vlrname + ' = ' + elementLang.value + ' em ' + elementLang.language)
-          })
-          // this.data.push({ name: vlrname, Espanhol: 'emi1', Inglês: 'emi2' })
-          // this.data.push({ name: vlrname, Espanhol: element.lang[teste].value, Inglês: element.lang[teste].value })
-          // this.data.push({ name: vlrname, Espanhol: vlrvalueE, Inglês: vlrvalueI })
-          // console.log(vlrvalueE + vlrvalueI)
-          // console.log('P')
-          // vlrvalueE = '-'
-          // vlrvalueI = '-'
-        } */
-        // this.data.push({ name: keyPrior, Espanhol: vlrvalueEPrior, Inglês: vlrvalueIPrior })
+        objData = {}
+        objData.name = element.key
+        for (i = 0; i < this.selectedLanguages.length; i++) {
+          objData[this.selectedLanguages[i]] = element.lang[this.selectedLanguages[i]] ? element.lang[this.selectedLanguages[i]][0].value : '-'
+        }
+        this.data.push(objData)
       })
-      // this.data.push({ name: keyPrior, Espanhol: vlrvalueEPrior, Inglês: vlrvalueIPrior })
     }
   },
   computed: {
