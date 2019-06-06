@@ -56,11 +56,11 @@
                 <template v-slot:body="props">
                   <q-tr :props="props">
                     <q-td key="chave" :props="props">{{ props.row.name }}</q-td>
-                    <q-td v-for="(lang, index) in selectedLanguages" :props="props" :key="lang">
-                      {{props.cols[index + 1].value}}
-                      <!--{{props.row.Inglês}}-->
-                      <!--{{props.row.[lang] ? props.row.[lang] : '-'}}-->
-                      <q-btn small flat>
+                    <q-td v-for="(lang) in selectedLanguages" :props="props" :key="lang">
+                      {{props.row[lang] ? props.row[lang] : '-'}}
+                        <!--<q-btn small flat @click="editTranslation(props.row[lang], lang)">-->
+                        <!--<q-btn small flat @click="editTranslationDialog = true">-->
+                        <q-btn small flat @click="editTranslation(props.row.name, props.row[lang], lang); editTranslationDialog = true">
                         <q-icon name="edit" />
                       </q-btn>
                       <q-btn small flat>
@@ -69,35 +69,6 @@
                     </q-td>
                   </q-tr>
                 </template>
-                <!--<template v-slot:body="props">
-                  <q-tr :props="props">
-                    <q-td key="chave" :props="props">{{ props.row.name }}</q-td>
-                    <q-td v-for="(lang, index) in selectedLanguages" :props="props" :key="index">
-                      {{props.row.lang[lang] ? props.row.lang[lang] : '-'}}
-                      console.log(props.row.lang)
-                      <q-btn small flat>
-                        <q-icon name="edit" />
-                      </q-btn>
-                      <q-btn small flat>
-                        <q-icon name="fa-database" />
-                      </q-btn>
-                    </q-td>
-                  </q-tr>
-                </template>-->
-                <!--<template v-slot:body="props">
-                  <q-tr :props="props" v-for="(label, index) in filteredTranslations" :key="index">
-                    <q-td key="chave" :props="props">{{ props.row.name }}</q-td>
-                    <q-td class="text-left" v-for="(lang, index) in selectedLanguages" :key="index" :data-th="lang">
-                      {{label.lang[lang] ? label.lang[lang][0].value : '-'}}
-                      <q-btn small flat>
-                        <q-icon name="edit" />
-                      </q-btn>
-                      <q-btn small flat>
-                        <q-icon name="fa-database" />
-                      </q-btn>
-                    </q-td>
-                  </q-tr>
-                </template>-->
               </q-table>
               <!--<q-markup-table class="q-table bordered striped-odd horizontal-separator vertical-separator responsive">
                 <thead>
@@ -173,7 +144,28 @@
         </q-bar>
       </q-card>
     </q-dialog>
+    <q-dialog v-model="editTranslationDialog" ref="editTranslationDialog" persistent>
+      <q-card style="width: 700px; max-width: 80vw;">
+        <q-bar class="row items-center bg-black text-white">
+          <div class="text-h6 q-pl-sm">Editar</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-bar>
+        <q-card-section class="layout-padding importFilesContent">
+            <div class="col-md-9">
+              <q-input v-model="edit.text" float-label="Digite a tradução ou digite em portugues e aperte no botão traduzir" />
+            </div>
+        </q-card-section>
 
+        <q-bar align="right" class="row bg-black text-white">
+          <q-space />
+          <q-btn flat @click="saveEdition" v-close-popup>
+            <q-icon name="check" />
+            Confirmar
+          </q-btn>
+        </q-bar>
+      </q-card>
+    </q-dialog>
     </q-page-container>
   </q-layout>
 </template>
@@ -197,13 +189,19 @@ export default {
       columns: [],
       data: [],
       importFilesDialog: false,
+      editTranslationDialog: false,
       file: null,
       selectedFiles: [],
       languages: ['Espanhol', 'Inglês', 'Português'],
       selectedLanguages: [],
       fileLanguage: null,
       translations: [],
-      filteredTranslations: this.groupedTranslations
+      filteredTranslations: this.groupedTranslations,
+      edit: {
+        text: '',
+        langTarget: null,
+        data: null
+      }
     }
   },
   watch: {
@@ -357,6 +355,24 @@ export default {
       } else {
         return group
       }
+    },
+    editTranslation (chave, data, language) {
+      console.log(chave + data + language)
+      // this.$refs.editTranslationDialog = true
+      // this.$refs.editTranslationDialog.open()
+      // this.$refs.editTranslationDialog.show()
+      // this.edit.data = data
+      this.edit.data = chave
+      this.edit.langTarget = language
+      // this.edit.text = data[language][0].value
+      this.edit.text = data
+    },
+    saveEdition () {
+      console.log('saveEdition')
+      console.log(this.edit.data)
+      // this.data[this.data.findIndex(el => el.name === this.edit.data)].Espanhol = this.edit.text
+      // this.data[this.data.findIndex(el => el.name === this.edit.data)].[this.edit.langTarget] = this.edit.text
+      this.data[this.data.findIndex(el => el.name === this.edit.data)][this.edit.langTarget] = this.edit.text
     }
   }
 }
