@@ -19,13 +19,13 @@
               <q-btn color="secondary" icon="cancel">Traduzir Incomp.</q-btn>
             </div>
             <div class="row items-center">
-              <q-btn color="secondary" icon="filter_list">Incompletos</q-btn>
+              <q-btn color="secondary" icon="filter_list" @click="filterIncomplete">Incompletos</q-btn>
               <q-btn color="secondary" icon="filter_list">Todos</q-btn>
-              <q-input
-                :debounce="600"
-                float-label="Buscar"
-                placeholder=""
-              />
+              <q-input borderless dense debounce="300" v-model="filter" placeholder="Buscar">
+                <template v-slot:prepend>
+                  <q-icon name="search" />
+                </template>
+              </q-input>
             </div>
           </div>
           <div class="row">
@@ -34,6 +34,7 @@
                 :data="data"
                 :columns="columns"
                 row-key="name"
+                :filter="filter"
                 :pagination.sync="pagination"
               >
                 <!--<template v-slot:body="props">
@@ -180,6 +181,7 @@ export default {
   name: 'i18n',
   data () {
     return {
+      filter: '',
       pagination: {
         sortBy: 'name',
         descending: false,
@@ -373,6 +375,55 @@ export default {
       // this.data[this.data.findIndex(el => el.name === this.edit.data)].Espanhol = this.edit.text
       // this.data[this.data.findIndex(el => el.name === this.edit.data)].[this.edit.langTarget] = this.edit.text
       this.data[this.data.findIndex(el => el.name === this.edit.data)][this.edit.langTarget] = this.edit.text
+    },
+    /**
+     * Get label that was not tranlated to all the languages.
+     *
+     * @return {void}
+     */
+    filterIncomplete () {
+      this.filteredTranslations = Object.assign({}, this.getIncompleteTranlations())
+    },
+
+    /**
+     * Get label that was not tranlated to all the languages.
+     *
+     * @return {array} List of incompleted labels.
+     */
+    getIncompleteTranlations () {
+      let filteredTranslations = []
+      // console.log('getIncompleteTranlations')
+      _.each(this.groupedTranslations, (translation) => {
+        let incomplete = false
+        _.each(this.selectedLanguages, (lang) => {
+          if (!translation.lang[lang]) {
+            incomplete = true
+            console.log('incomplete = true')
+          }
+        })
+        if (incomplete) {
+          filteredTranslations.push(translation)
+          // console.log(filteredTranslations)
+          // this.filter.push(translation.key)
+        }
+      })
+      // this.data.filter(a1 => filteredTranslations.find(a2 => a2.match(a1)))
+      /* let emiTeste = this.data.filter(function (objData) {
+        // return dt.key === 'AAA'
+        return objData.name === 'AAA'
+      }) */
+      // let emiTeste = this.data.filter(a1.name => filteredTranslations.find(a2.key => a2.match(a1.name)))
+      let emiTeste = this.data.filter(a1 => filteredTranslations.find(a2 => a2.match(a1)))
+      console.log(emiTeste)
+      this.data = emiTeste
+      // objData.name = element.key
+      // this.filter = filteredTranslations
+      // console.log(this.data.filter)
+      // this.filter.push('AAA')
+      // this.translations.push
+      // this.filter = 'AAA'
+      // this.data = []
+      return filteredTranslations
     }
   }
 }
