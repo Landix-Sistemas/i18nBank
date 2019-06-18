@@ -207,16 +207,6 @@ export default {
     }
   },
   watch: {
-    /* search (value) {
-      Loading.show()
-
-      Promise.resolve()
-        .then(() => {
-          this.searchByTerm(value)
-          return Loading.hide()
-        })
-        .catch(() => true)
-    }, */
     translations () {
       this.filteredTranslations = this.groupedTranslations
       this.columns = []
@@ -382,48 +372,25 @@ export default {
      * @return {void}
      */
     filterIncomplete () {
-      this.filteredTranslations = Object.assign({}, this.getIncompleteTranlations())
-    },
-
-    /**
-     * Get label that was not tranlated to all the languages.
-     *
-     * @return {array} List of incompleted labels.
-     */
-    getIncompleteTranlations () {
       let filteredTranslations = []
-      // console.log('getIncompleteTranlations')
       _.each(this.groupedTranslations, (translation) => {
         let incomplete = false
         _.each(this.selectedLanguages, (lang) => {
           if (!translation.lang[lang]) {
             incomplete = true
-            console.log('incomplete = true')
           }
         })
         if (incomplete) {
           filteredTranslations.push(translation)
-          // console.log(filteredTranslations)
-          // this.filter.push(translation.key)
+          this.data.filter = translation.key
         }
       })
-      // this.data.filter(a1 => filteredTranslations.find(a2 => a2.match(a1)))
-      /* let emiTeste = this.data.filter(function (objData) {
-        // return dt.key === 'AAA'
-        return objData.name === 'AAA'
-      }) */
-      // let emiTeste = this.data.filter(a1.name => filteredTranslations.find(a2.key => a2.match(a1.name)))
-      let emiTeste = this.data.filter(a1 => filteredTranslations.find(a2 => a2.match(a1)))
+      let emiTeste = this.data.filter(a1 => filteredTranslations.find(a2 => a2.name === a1.name))
+      // let emiTeste = this.data.filter(a1 => filteredTranslations.find(a2 => a2.key === a1.name))
       console.log(emiTeste)
-      this.data = emiTeste
-      // objData.name = element.key
-      // this.filter = filteredTranslations
-      // console.log(this.data.filter)
-      // this.filter.push('AAA')
-      // this.translations.push
-      // this.filter = 'AAA'
-      // this.data = []
-      return filteredTranslations
+      // console.log(filteredTranslations)
+      // this.data = emiTeste
+      console.log(this.data.filter)
     }
   }
 }
