@@ -20,7 +20,7 @@
             </div>
             <div class="row items-center">
               <q-btn color="secondary" icon="filter_list" @click="filterIncomplete">Incompletos</q-btn>
-              <q-btn color="secondary" icon="filter_list">Todos</q-btn>
+              <q-btn color="secondary" icon="filter_list" @click="filterComplete">Todos</q-btn>
               <q-input borderless dense debounce="300" v-model="filter" placeholder="Buscar">
                 <template v-slot:prepend>
                   <q-icon name="search" />
@@ -172,7 +172,6 @@
 </template>
 
 <script>
-/* emilia porque tem que colocar este import se já temno quasar.config plugins ??? */
 import {
   Loading
 } from 'quasar'
@@ -190,6 +189,7 @@ export default {
       },
       columns: [],
       data: [],
+      dataOriginal: [],
       importFilesDialog: false,
       editTranslationDialog: false,
       file: null,
@@ -217,7 +217,7 @@ export default {
       for (i = 0; i < this.selectedLanguages.length; i++) {
         this.columns.push({ name: this.selectedLanguages[i], align: 'center', label: this.selectedLanguages[i], field: this.selectedLanguages[i], sortable: false })
       }
-      console.log(this.filteredTranslations)
+      // console.log(this.filteredTranslations)
       this.filteredTranslations.forEach((element, index, array) => {
         objData = {}
         objData.name = element.key
@@ -226,6 +226,7 @@ export default {
         }
         this.data.push(objData)
       })
+      this.dataOriginal = this.data
     }
   },
   computed: {
@@ -382,15 +383,31 @@ export default {
         })
         if (incomplete) {
           filteredTranslations.push(translation)
-          this.data.filter = translation.key
+          // this.data.filter = translation.key
         }
       })
-      let emiTeste = this.data.filter(a1 => filteredTranslations.find(a2 => a2.name === a1.name))
+      console.log(this.data)
+      console.log(filteredTranslations)
+      let emiTeste = this.data.filter(a1 => {
+        console.log(a1.name)
+        var x = _.find(filteredTranslations, a2 => {
+          console.log('a2', a2.key)
+          return a2.key === a1.name
+        })
+        console.log('x', x)
+        return x
+      })
+      // let emiTeste = this.data.filter(a1 => filteredTranslations.find(a2 => a2.name === a1.name))
       // let emiTeste = this.data.filter(a1 => filteredTranslations.find(a2 => a2.key === a1.name))
       console.log(emiTeste)
       // console.log(filteredTranslations)
-      // this.data = emiTeste
-      console.log(this.data.filter)
+      this.data = emiTeste
+      // console.log(this.data.filter)
+    },
+    filterComplete () {
+      // this.data = this.translations
+      // this.translations = this.groupedTranslations
+      this.data = this.dataOriginal
     }
   }
 }
