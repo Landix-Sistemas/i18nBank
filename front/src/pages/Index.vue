@@ -37,30 +37,11 @@
                 :filter="filter"
                 :pagination.sync="pagination"
               >
-                <!--<template v-slot:body="props">
-                  <q-tr :props="props">
-                    <q-td key="chave" :props="props">{{ props.row.name }}</q-td>
-                    <q-td key="Espanhol" :props="props">
-                      {{ props.row.Espanhol }}
-                      <q-popup-edit v-model="props.row.Espanhol" title="Update" buttons>
-                        <q-input v-model="props.row.Espanhol" dense autofocus />
-                      </q-popup-edit>
-                    </q-td>
-                    <q-td key="Inglês" :props="props">
-                      {{ props.row.Inglês }}
-                      <q-popup-edit v-model="props.row.Inglês" title="Update Inglês" buttons>
-                        <q-input v-model="props.row.Inglês" dense autofocus />
-                      </q-popup-edit>
-                    </q-td>
-                  </q-tr>
-                </template>-->
                 <template v-slot:body="props">
                   <q-tr :props="props">
                     <q-td key="chave" :props="props">{{ props.row.name }}</q-td>
                     <q-td v-for="(lang) in selectedLanguages" :props="props" :key="lang">
                       {{props.row[lang] ? props.row[lang] : '-'}}
-                        <!--<q-btn small flat @click="editTranslation(props.row[lang], lang)">-->
-                        <!--<q-btn small flat @click="editTranslationDialog = true">-->
                         <q-btn small flat @click="editTranslation(props.row.name, props.row[lang], lang); editTranslationDialog = true">
                         <q-icon name="edit" />
                       </q-btn>
@@ -71,29 +52,6 @@
                   </q-tr>
                 </template>
               </q-table>
-              <!--<q-markup-table class="q-table bordered striped-odd horizontal-separator vertical-separator responsive">
-                <thead>
-                  <tr>
-                    <th class="text-left">Chave</th>
-                    <th class="text-left" v-for="(lang, index) in selectedLanguages" :key="index">{{lang}}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(label, index) in filteredTranslations" :key="index">
-                    <td>{{ label.key }}</td>
-                    <td class="text-left" v-for="(lang, index) in selectedLanguages" :key="index" :data-th="lang">
-                      {{label.lang[lang] ? label.lang[lang][0].value : '-'}}
-                      <q-btn small flat>
-                        <q-icon name="edit" />
-                      </q-btn>
-                      <q-btn small flat>
-                        <q-icon name="add" />
-                        <q-icon name="fa-database" />
-                      </q-btn>
-                    </td>
-                  </tr>
-                </tbody>
-              </q-markup-table>-->
             </div>
           </div>
         </q-card-section>
@@ -217,7 +175,6 @@ export default {
       for (i = 0; i < this.selectedLanguages.length; i++) {
         this.columns.push({ name: this.selectedLanguages[i], align: 'center', label: this.selectedLanguages[i], field: this.selectedLanguages[i], sortable: false })
       }
-      // console.log(this.filteredTranslations)
       this.filteredTranslations.forEach((element, index, array) => {
         objData = {}
         objData.name = element.key
@@ -303,14 +260,14 @@ export default {
                 _.each(res, (value, key) => {
                   this.translations.push({
                     fileID: fileId,
-                    group: this.UnFormatGroup(key.split('_')[0], 'resx'),
-                    /* key: key.split('_')[1], emilia */
-                    key: key.split('_')[0],
+                    /* group: this.UnFormatGroup(key.split('_')[0], 'resx'),
+                    key: key.split('_')[0], emilia */
+                    group: key,
+                    key: key,
                     value: value,
                     language: that.fileLanguage
                   })
                 })
-                // console.log(this.translations)
               }
             })
           }
@@ -350,21 +307,12 @@ export default {
       }
     },
     editTranslation (chave, data, language) {
-      console.log(chave + data + language)
-      // this.$refs.editTranslationDialog = true
-      // this.$refs.editTranslationDialog.open()
-      // this.$refs.editTranslationDialog.show()
-      // this.edit.data = data
       this.edit.data = chave
       this.edit.langTarget = language
-      // this.edit.text = data[language][0].value
       this.edit.text = data
     },
     saveEdition () {
-      console.log('saveEdition')
       console.log(this.edit.data)
-      // this.data[this.data.findIndex(el => el.name === this.edit.data)].Espanhol = this.edit.text
-      // this.data[this.data.findIndex(el => el.name === this.edit.data)].[this.edit.langTarget] = this.edit.text
       this.data[this.data.findIndex(el => el.name === this.edit.data)][this.edit.langTarget] = this.edit.text
     },
     /**
@@ -383,30 +331,12 @@ export default {
         })
         if (incomplete) {
           filteredTranslations.push(translation)
-          // this.data.filter = translation.key
         }
       })
-      console.log(this.data)
-      console.log(filteredTranslations)
-      let emiTeste = this.data.filter(a1 => {
-        console.log(a1.name)
-        var x = _.find(filteredTranslations, a2 => {
-          console.log('a2', a2.key)
-          return a2.key === a1.name
-        })
-        console.log('x', x)
-        return x
-      })
-      // let emiTeste = this.data.filter(a1 => filteredTranslations.find(a2 => a2.name === a1.name))
-      // let emiTeste = this.data.filter(a1 => filteredTranslations.find(a2 => a2.key === a1.name))
-      console.log(emiTeste)
-      // console.log(filteredTranslations)
-      this.data = emiTeste
-      // console.log(this.data.filter)
+      let incompletes = this.data.filter(a1 => filteredTranslations.find(a2 => a2.key === a1.name))
+      this.data = incompletes
     },
     filterComplete () {
-      // this.data = this.translations
-      // this.translations = this.groupedTranslations
       this.data = this.dataOriginal
     }
   }
