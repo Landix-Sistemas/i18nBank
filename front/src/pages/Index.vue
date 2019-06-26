@@ -112,7 +112,22 @@
         </q-bar>
         <q-card-section class="layout-padding importFilesContent">
             <div class="col-md-9">
-              <q-input v-model="edit.text" float-label="Digite a tradução ou digite em portugues e aperte no botão traduzir" />
+              <!--<q-input v-model="edit.text" label="Digite a tradução ou digite em portugues e aperte no botão traduzir" />-->
+              <q-input filled bottom-slots v-model="edit.text" label="Digite a tradução ou digite em portugues e aperte no botão para traduzir" >
+                <template v-slot:after>
+                  <q-btn round dense flat icon="translate">
+                    <q-tooltip anchor="bottom middle" self="top middle">Traduzir</q-tooltip>
+                  </q-btn>
+                </template>
+              </q-input>
+            </div>
+            <!--<div class="col-md-1">
+              <q-btn color="dark" v-if="edit.langTarget !== 'pt-BR'">
+                Traduzir
+              </q-btn>
+            </div>-->
+            <div class="col-md-12">
+              <q-checkbox v-for="(file, index) in editableFiles()" v-model="file.selected" :label="file.name" v-bind:key="index"/>
             </div>
         </q-card-section>
 
@@ -134,6 +149,19 @@ import {
   Loading
 } from 'quasar'
 import _ from 'Lodash'
+import pify from 'pify'
+// Add a new function to the  lodash
+_.mixin({
+  'sortKeysBy': function (obj, comparator) {
+    var keys = _.sortBy(_.keys(obj), function (key) {
+      return comparator ? comparator(obj[key], key) : key
+    })
+
+    return _.zipObject(keys, _.map(keys, function (key) {
+      return obj[key]
+    }))
+  }
+})
 export default {
   name: 'i18n',
   data () {
@@ -312,8 +340,156 @@ export default {
       this.edit.text = data
     },
     saveEdition () {
-      console.log(this.edit.data)
+      // console.log(this.edit.data)
       this.data[this.data.findIndex(el => el.name === this.edit.data)][this.edit.langTarget] = this.edit.text
+
+      let translations = _.groupBy(this.translations, 'fileID')
+      let promises = []
+      Loading.show()
+
+      // Update all selected files
+      _.each(_.groupBy(this.selectedFiles, 'selected')['true'], (file) => {
+        if (file.id) {
+          let fileTranslations = translations[file.id]
+          // let editedLabelIndex = fileTranslations ? _.findIndex(fileTranslations, (item) => { return item.key === this.edit.data[Object.keys(this.edit.data)[0]][0].key }) : -1
+          let editedLabelIndex = fileTranslations ? _.findIndex(fileTranslations, (item) => { return item.key === this.edit.data }) : -1
+          // console.log(this.edit.data)
+          // console.log(this.edit.data[Object.keys(this.edit.data)[0]][0].key)
+          let newTranslation
+
+          // if already exist the key in the file just change the value else create a translate object
+          if (editedLabelIndex >= 0) {
+            console.log('editedLabelIndex >= 0')
+            fileTranslations[editedLabelIndex].value = this.edit.text
+          } else {
+            newTranslation = {
+              fileID: file.id,
+              // group: this.edit.data[Object.keys(this.edit.data)[0]][0].group,
+              // key: this.edit.data[Object.keys(this.edit.data)[0]][0].key,
+              group: this.edit.data,
+              key: this.edit.data,
+              value: this.edit.text,
+              language: this.edit.langTarget
+            }
+
+            fileTranslations.push(newTranslation)
+            this.translations.push(newTranslation)
+          }
+          // console.log(fileTranslations)
+
+          // formata as labels no formato necessário para salvar o arquivo
+          promises.push(this.formatJSONToFile(file.path.split('.').pop(), fileTranslations)
+            .then((newFileString) => {
+              // grava os dados no arquivo
+              // console.log(newFileString)
+              return this.writeFile(file.path, newFileString)
+            })
+            .catch((err) => {
+              return console.log(err)
+            }))
+        }
+      })
+
+      Promise.all(promises).then(() => {
+        // this.$refs.editTranslation.close()
+        // Clean the selected file list
+        this.selectedFiles = _.map(this.selectedFiles, (file) => {
+          file.selected = false
+          return file
+        })
+        return Loading.hide()
+      }).catch(() => {
+        // this.$refs.editTranslation.close()
+        return Loading.hide()
+      })
+    },
+    /**
+     * Write the file with all labels.
+     *
+     * @param {string} filePath - File path
+     * @param {string} newFileString - The labels to write the file
+     * @return {Promise}
+     */
+    writeFile (filePath, newFileString) {
+      // eslint-disable-next-line no-undef
+      return pify(getFS().writeFile)(filePath, newFileString)
+    },
+    /**
+     * Transform the labels array to the format of the file.
+     *
+     * @param {string} typeOfFile - the type of the file.
+     * @param {object} jsonObject - the labels to save the file.
+     * @return {string} File labels
+     */
+    formatJSONToFile (typeOfFile, jsonObject) {
+      if (typeOfFile === 'resx') {
+        return this.translationsToRESX(jsonObject)
+      } else if (typeOfFile === 'json') {
+        return this.translationsToJSON(jsonObject)
+      }
+    },
+    /**
+     * Transform the labels array to the format of resx file.
+     *
+     * @param {object} jsonObject - the labels to save the file.
+     * @return {string} File labels
+     */
+    translationsToRESX (jsonObject) {
+      let jsonFile = {}
+
+      _.each(jsonObject, (item) => {
+        // jsonFile[item.group + '_' + item.key] = item.value // emilia para que ter grupo ???
+        jsonFile[item.key] = item.value
+      })
+
+      // order the labels
+      jsonFile = _.sortKeysBy(jsonFile)
+
+      return pify(require('resx/js2resx'))(jsonFile)
+    },
+
+    /**
+     * Transform the labels array to the format of json file.
+     *
+     * @param {object} jsonObject - the labels to save the file.
+     * @return {string} File labels
+     */
+    translationsToJSON (jsonObject) {
+      let jsonFile = {}
+
+      _.each(jsonObject, (item) => {
+        if (!jsonFile[item.group]) jsonFile[item.group] = {} // create a new group if it wasn't created yet
+        jsonFile[item.group][item.key] = item.value // emilia para que ter grupo ???
+      })
+
+      // order labels by group
+      _.each(jsonFile, (value, key) => {
+        jsonFile[key] = _.sortKeysBy(value)
+      })
+
+      // return json object idented with 4 spaces
+      return Promise.resolve(JSON.stringify(jsonFile, null, '    '))
+    },
+    /**
+     * List editable files by language
+     *
+     * @return {array} list of editable files
+     */
+    editableFiles () {
+      if (!this.edit.langTarget) {
+        return this.selectedFiles
+      }
+
+      let that = this
+      let languages = []
+
+      _.each(this.selectedFiles, (item) => {
+        if (item.language === that.edit.langTarget) {
+          languages.push(item)
+        }
+      })
+
+      return languages
     },
     /**
      * Get label that was not tranlated to all the languages.
