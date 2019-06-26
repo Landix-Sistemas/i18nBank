@@ -1,9 +1,23 @@
 <template>
   <q-layout>
     <q-header elevated class="q-pa-md q-gutter-y-sm bg-black text-white titlebar">
-      <q-toolbar-title inset>
+      <!--<q-toolbar-title inset>
         I18N Bank &amp; Manager
-      </q-toolbar-title>
+      </q-toolbar-title>-->
+      <q-toolbar>
+        <q-toolbar-title inset>I18N Bank &amp; Manager
+          <div slot="subtitle">Banco de dados e gerenciamento de traduções</div>
+        </q-toolbar-title>
+        <!--<span slot="subtitle">Banco de dados e gerenciamento de traduções</span>-->
+        <!--<q-btn flat round dense icon="fa-cog" />-->
+        <!--<q-btn flat round dense icon="search" />-->
+        <q-btn flat icon="search" @click="configurationDialog = true">
+            <!--<q-icon name="search" />-->
+        </q-btn>
+      </q-toolbar>
+      <!--<q-toolbar inset>
+        <q-toolbar-title><strong>Quasar</strong> Framework</q-toolbar-title>
+      </q-toolbar>-->
     </q-header>
     <q-page-container>
       <q-card>
@@ -56,7 +70,50 @@
           </div>
         </q-card-section>
       </q-card>
-
+      <!--<q-dialog v-model="configurationDialog" persistent style="width: 700px; max-width: 80vw; height:400px;">-->
+      <q-dialog v-model="configurationDialog" persistent>
+        <!--<q-card style="width: 700px; max-width: 80vw;">-->
+        <q-card style="width: 700px; max-width: 80vw; height:415px;">
+        <!--<q-card>-->
+          <q-bar class="row items-center bg-black text-white">
+            <div class="text-h6 q-pl-sm">Configurações</div>
+            <q-space />
+            <q-btn icon="close" flat round dense v-close-popup />
+          </q-bar>
+          <!--<q-card-section class="layout-padding importFilesContent">-->
+          <!--<q-card-section class="layout-padding importFilesContent" style="width: 700px; max-width: 80vw; height:346px;">-->
+          <!--<q-card-section class="layout-padding importFilesContent" style="width: 700px; max-width: 80vw; height:347px;">--> <!-- 343 -->
+          <q-card-section>
+            <!--<q-input filled bottom-slots v-model="edit.text" label="Digite o idioma" />-->
+            <fieldset>
+            <!--<fieldset style="width: 650px; max-width: 75vw; height:350px;">-->
+              <legend>Linguagem</legend>
+              <div class="col-md-12">
+                <q-input v-model="newLang" float-label="Nova lingua" />
+                <q-btn color="black" class="pull-right" @click="addNewLanguage">
+                  <q-icon name="add" />
+                  Add
+                </q-btn>
+              </div>
+              <dl class="listLangs col-md-12">
+                <dt>Linguas Adicionadas:</dt>
+                <dd v-for="lang in languages" :key="lang"> <!-- lang.value -->
+                  <!--{{lang.label}}-->
+                  {{lang}}
+                </dd>
+              </dl>
+            </fieldset>
+          </q-card-section>
+          <!--<q-bar align="right" class="row bg-black text-white">-->
+          <q-bar class="row bg-black text-white">
+            <!--<q-space />
+            <q-btn flat @click="addFile" v-close-popup>
+              <q-icon name="check" />
+              Confirmar
+            </q-btn>-->
+          </q-bar>
+        </q-card>
+      </q-dialog>
       <q-dialog v-model="importFilesDialog" persistent>
       <q-card style="width: 700px; max-width: 80vw;">
         <q-bar class="row items-center bg-black text-white">
@@ -66,7 +123,6 @@
         </q-bar>
         <q-card-section class="layout-padding importFilesContent">
           <div class="row">
-
             <div class="col-md-6">
               <p v-for="file in selectedFiles" :key="file.id">
                 {{ file.name }} | Idioma: {{ file.language }}
@@ -90,10 +146,8 @@
                 </div>
               </div>
             </div>
-
           </div>
         </q-card-section>
-
         <q-bar align="right" class="row bg-black text-white">
           <q-space />
           <q-btn flat @click="addFile" v-close-popup>
@@ -115,7 +169,8 @@
               <!--<q-input v-model="edit.text" label="Digite a tradução ou digite em portugues e aperte no botão traduzir" />-->
               <q-input filled bottom-slots v-model="edit.text" label="Digite a tradução ou digite em portugues e aperte no botão para traduzir" >
                 <template v-slot:after>
-                  <q-btn round dense flat icon="translate">
+                  <!-- No sistema antigo as linguagens eram cadastradas como siglas? -->
+                  <q-btn round dense flat icon="translate" v-if="edit.langTarget !== 'pt-BR'"> <!-- emilia verificar como edit.langTarget está sendo populado -->
                     <q-tooltip anchor="bottom middle" self="top middle">Traduzir</q-tooltip>
                   </q-btn>
                 </template>
@@ -130,7 +185,6 @@
               <q-checkbox v-for="(file, index) in editableFiles()" v-model="file.selected" :label="file.name" v-bind:key="index"/>
             </div>
         </q-card-section>
-
         <q-bar align="right" class="row bg-black text-white">
           <q-space />
           <q-btn flat @click="saveEdition" v-close-popup>
@@ -166,6 +220,7 @@ export default {
   name: 'i18n',
   data () {
     return {
+      newLang: '',
       filter: '',
       pagination: {
         sortBy: 'name',
@@ -176,11 +231,13 @@ export default {
       columns: [],
       data: [],
       dataOriginal: [],
+      configurationDialog: false,
       importFilesDialog: false,
       editTranslationDialog: false,
       file: null,
       selectedFiles: [],
-      languages: ['Espanhol', 'Inglês', 'Português'],
+      // languages: ['Espanhol', 'Inglês', 'Português'],
+      languages: ['pt-BR', 'en-US', 'es-CL'],
       selectedLanguages: [],
       fileLanguage: null,
       translations: [],
@@ -227,6 +284,17 @@ export default {
     }
   },
   methods: {
+    /**
+     * Add new language to the database
+     *
+     * @return {void}
+    */
+    addNewLanguage () {
+      /* let lang = this.$gun.get(`language/${this.newLang}`).put({value: this.newLang, label: this.newLang})
+      this.$gun.get(`languages`).set(lang)
+      this.newLang = '' */
+      console.log(this.selectedLanguages)
+    },
     /**
      * Add a JSON or RESX translation file
      *
