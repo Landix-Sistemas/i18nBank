@@ -1,13 +1,15 @@
 <template>
   <q-layout>
-    <q-header elevated class="q-pa-md q-gutter-y-sm bg-black text-white titlebar">
+    <!--<q-header elevated class="q-pa-md q-gutter-y-sm bg-black text-white titlebar">-->
+      <q-header elevated>
       <!--<q-toolbar-title inset>
         I18N Bank &amp; Manager
       </q-toolbar-title>-->
-      <q-toolbar>
-        <q-toolbar-title inset>I18N Bank &amp; Manager
-          <div slot="subtitle">Banco de dados e gerenciamento de traduções</div>
+      <q-toolbar class="glossy bg-black text-white">
+        <q-toolbar-title inset>I18N Bank &amp; Manager <!--inset -->
+          <!--<div slot="subtitle">Banco de dados e gerenciamento de traduções</div>-->
         </q-toolbar-title>
+        <!--<div slot="subtitle">Banco de dados e gerenciamento de traduções</div>-->
         <!--<span slot="subtitle">Banco de dados e gerenciamento de traduções</span>-->
         <!--<q-btn flat round dense icon="fa-cog" />-->
         <!--<q-btn flat round dense icon="search" />-->
@@ -70,23 +72,15 @@
           </div>
         </q-card-section>
       </q-card>
-      <!--<q-dialog v-model="configurationDialog" persistent style="width: 700px; max-width: 80vw; height:400px;">-->
       <q-dialog v-model="configurationDialog" persistent>
-        <!--<q-card style="width: 700px; max-width: 80vw;">-->
         <q-card style="width: 700px; max-width: 80vw; height:415px;">
-        <!--<q-card>-->
-          <q-bar class="row items-center bg-black text-white">
+          <q-bar class="row items-center bg-black text-white glossy">
             <div class="text-h6 q-pl-sm">Configurações</div>
             <q-space />
-            <q-btn icon="close" flat round dense v-close-popup />
+            <q-btn icon="close" flat v-close-popup />
           </q-bar>
-          <!--<q-card-section class="layout-padding importFilesContent">-->
-          <!--<q-card-section class="layout-padding importFilesContent" style="width: 700px; max-width: 80vw; height:346px;">-->
-          <!--<q-card-section class="layout-padding importFilesContent" style="width: 700px; max-width: 80vw; height:347px;">--> <!-- 343 -->
           <q-card-section>
-            <!--<q-input filled bottom-slots v-model="edit.text" label="Digite o idioma" />-->
             <fieldset>
-            <!--<fieldset style="width: 650px; max-width: 75vw; height:350px;">-->
               <legend>Linguagem</legend>
               <div class="col-md-12">
                 <q-input v-model="newLang" float-label="Nova lingua" />
@@ -104,8 +98,7 @@
               </dl>
             </fieldset>
           </q-card-section>
-          <!--<q-bar align="right" class="row bg-black text-white">-->
-          <q-bar class="row bg-black text-white">
+          <q-bar class="row bg-black text-white glossy">
             <!--<q-space />
             <q-btn flat @click="addFile" v-close-popup>
               <q-icon name="check" />
@@ -116,10 +109,10 @@
       </q-dialog>
       <q-dialog v-model="newTranslationDialog" persistent>
         <q-card style="width: 700px; max-width: 80vw;">
-          <q-bar class="row items-center bg-black text-white">
+          <q-bar class="row items-center bg-black text-white  glossy">
             <div class="text-h6 q-pl-sm">Nova Tradução</div>
             <q-space />
-            <q-btn icon="close" flat round dense v-close-popup />
+            <q-btn icon="close" flat v-close-popup />
           </q-bar>
           <q-card-section class="layout-padding newTranslationContent">
             <div class="col-md-12">
@@ -147,7 +140,7 @@
               </div>
             </div>
           </q-card-section>
-          <q-bar align="right" class="row bg-black text-white">
+          <q-bar align="right" class="row bg-black text-white glossy">
             <q-space />
             <q-btn flat @click="addNewLabel" v-close-popup>
               <q-icon name="check" />
@@ -158,10 +151,10 @@
     </q-dialog>
     <q-dialog v-model="importFilesDialog" persistent>
         <q-card style="width: 700px; max-width: 80vw;">
-          <q-bar class="row items-center bg-black text-white">
+          <q-bar class="row items-center bg-black text-white glossy">
             <div class="text-h6 q-pl-sm">Importar arquivo de tradução</div>
             <q-space />
-            <q-btn icon="close" flat round dense v-close-popup />
+            <q-btn icon="close" flat v-close-popup />
           </q-bar>
           <q-card-section class="layout-padding importFilesContent">
             <div class="row">
@@ -190,7 +183,7 @@
               </div>
             </div>
           </q-card-section>
-          <q-bar align="right" class="row bg-black text-white">
+          <q-bar align="right" class="row bg-black text-white glossy">
             <q-space />
             <q-btn flat @click="addFile" v-close-popup>
               <q-icon name="check" />
@@ -199,20 +192,19 @@
           </q-bar>
       </q-card>
     </q-dialog>
-    <q-dialog v-model="editTranslationDialog" ref="editTranslationDialog" persistent>
+    <q-dialog v-model="editTranslationDialog" persistent>
       <q-card style="width: 700px; max-width: 80vw;">
-        <q-bar class="row items-center bg-black text-white">
+        <q-bar class="row items-center bg-black text-white glossy">
           <div class="text-h6 q-pl-sm">Editar</div>
           <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
+          <q-btn icon="close" flat v-close-popup />
         </q-bar>
-        <q-card-section class="layout-padding importFilesContent">
+        <q-card-section class="layout-padding">
             <div class="col-md-9">
-              <!--<q-input v-model="edit.text" label="Digite a tradução ou digite em portugues e aperte no botão traduzir" />-->
               <q-input filled bottom-slots v-model="edit.text" label="Digite a tradução ou digite em portugues e aperte no botão para traduzir" >
                 <template v-slot:after>
                   <!-- No sistema antigo as linguagens eram cadastradas como siglas? -->
-                  <q-btn round dense flat icon="translate" v-if="edit.langTarget !== 'pt-BR'"> <!-- emilia verificar como edit.langTarget está sendo populado -->
+                  <q-btn flat icon="translate" v-if="edit.langTarget !== 'pt-BR'"> <!-- emilia verificar como edit.langTarget está sendo populado -->
                     <q-tooltip anchor="bottom middle" self="top middle">Traduzir</q-tooltip>
                   </q-btn>
                 </template>
@@ -227,7 +219,7 @@
               <q-checkbox v-for="(file, index) in editableFiles()" v-model="file.selected" :label="file.name" v-bind:key="index"/>
             </div>
         </q-card-section>
-        <q-bar align="right" class="row bg-black text-white">
+        <q-bar align="right" class="row bg-black text-white glossy">
           <q-space />
           <q-btn flat @click="saveEdition" v-close-popup>
             <q-icon name="check" />
