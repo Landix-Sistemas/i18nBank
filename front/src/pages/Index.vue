@@ -24,18 +24,18 @@
         <q-card-section>
           <div class="row items-center justify-between filters">
             <div>
-              <q-btn color="secondary" icon="add">Nova label</q-btn>
+              <q-btn color="secondary" icon="add" v-if="translations.length" @click="newTranslationDialog = true">Nova label</q-btn>
             </div>
             <div>
               <q-btn color="secondary" icon="file_upload" @click="importFilesDialog = true">Importar Arquivo</q-btn>
             </div>
             <div>
-              <q-btn color="secondary" icon="cancel">Traduzir Incomp.</q-btn>
+              <q-btn color="secondary" icon="cancel" v-if="translations.length">Traduzir Incomp.</q-btn>
             </div>
             <div class="row items-center">
-              <q-btn color="secondary" icon="filter_list" @click="filterIncomplete">Incompletos</q-btn>
-              <q-btn color="secondary" icon="filter_list" @click="filterComplete">Todos</q-btn>
-              <q-input borderless dense debounce="300" v-model="filter" placeholder="Buscar">
+              <q-btn color="secondary" icon="filter_list" @click="filterIncomplete" v-if="translations.length">Incompletos</q-btn>
+              <q-btn color="secondary" icon="filter_list" @click="filterComplete" v-if="translations.length">Todos</q-btn>
+              <q-input borderless dense debounce="300" v-model="filter" placeholder="Buscar" v-if="translations.length">
                 <template v-slot:prepend>
                   <q-icon name="search" />
                 </template>
@@ -114,47 +114,89 @@
           </q-bar>
         </q-card>
       </q-dialog>
-      <q-dialog v-model="importFilesDialog" persistent>
-      <q-card style="width: 700px; max-width: 80vw;">
-        <q-bar class="row items-center bg-black text-white">
-          <div class="text-h6 q-pl-sm">Importar arquivo de tradução</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
-        </q-bar>
-        <q-card-section class="layout-padding importFilesContent">
-          <div class="row">
-            <div class="col-md-6">
-              <p v-for="file in selectedFiles" :key="file.id">
-                {{ file.name }} | Idioma: {{ file.language }}
-              </p>
+      <q-dialog v-model="newTranslationDialog" persistent>
+        <q-card style="width: 700px; max-width: 80vw;">
+          <q-bar class="row items-center bg-black text-white">
+            <div class="text-h6 q-pl-sm">Nova Tradução</div>
+            <q-space />
+            <q-btn icon="close" flat round dense v-close-popup />
+          </q-bar>
+          <q-card-section class="layout-padding newTranslationContent">
+            <div class="col-md-12">
+              <q-checkbox
+                v-for="(file, index) in selectedFiles"
+                v-model="file.selected"
+                :label="file.name"
+                v-bind:key="index"
+                @input="onNewLabelFileClick(file)"
+              />
+            </div>
+           <!-- <div class="col-md-8 offset-2">
+              <q-select
+                v-model="newLabel.group"
+                float-label="Grupo"
+                :options="groups"
+              />
+            </div> -->
+            <div class="col-md-4">
+              <q-input v-model="newLabel.key" label="Chave" />
             </div>
             <div class="col-md-6">
-              <div class="row">
-                <input
-                  type="file"
-                  @change="file = $event.target.files"
-                  class="input-file"
-                >
+              <div class="col-md-12" v-for="(label, index) in newLabel.labels" :key="index">
+                <q-input v-model="label.model" :label="label.language" />
               </div>
-              <div class="row">
-                <div style="width: 500px; max-width: 90vw;">
-                  <q-select
-                    v-model="fileLanguage"
-                    float-label="Idioma"
-                    :options="languages"
-                  />
+            </div>
+          </q-card-section>
+          <q-bar align="right" class="row bg-black text-white">
+            <q-space />
+            <q-btn flat @click="addNewLabel" v-close-popup>
+              <q-icon name="check" />
+              Confirmar
+            </q-btn>
+          </q-bar>
+      </q-card>
+    </q-dialog>
+    <q-dialog v-model="importFilesDialog" persistent>
+        <q-card style="width: 700px; max-width: 80vw;">
+          <q-bar class="row items-center bg-black text-white">
+            <div class="text-h6 q-pl-sm">Importar arquivo de tradução</div>
+            <q-space />
+            <q-btn icon="close" flat round dense v-close-popup />
+          </q-bar>
+          <q-card-section class="layout-padding importFilesContent">
+            <div class="row">
+              <div class="col-md-6">
+                <p v-for="file in selectedFiles" :key="file.id">
+                  {{ file.name }} | Idioma: {{ file.language }}
+                </p>
+              </div>
+              <div class="col-md-6">
+                <div class="row">
+                  <input
+                    type="file"
+                    @change="file = $event.target.files"
+                    class="input-file"
+                  >
+                </div>
+                <div class="row">
+                  <div style="width: 500px; max-width: 90vw;">
+                    <q-select
+                      v-model="fileLanguage"
+                      float-label="Idioma"
+                      :options="languages"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </q-card-section>
-        <q-bar align="right" class="row bg-black text-white">
-          <q-space />
-          <q-btn flat @click="addFile" v-close-popup>
-            <q-icon name="check" />
-            Confirmar
-          </q-btn>
-        </q-bar>
+          </q-card-section>
+          <q-bar align="right" class="row bg-black text-white">
+            <q-space />
+            <q-btn flat @click="addFile" v-close-popup>
+              <q-icon name="check" />
+              Confirmar
+            </q-btn>
+          </q-bar>
       </q-card>
     </q-dialog>
     <q-dialog v-model="editTranslationDialog" ref="editTranslationDialog" persistent>
@@ -231,6 +273,7 @@ export default {
       columns: [],
       data: [],
       dataOriginal: [],
+      newTranslationDialog: false,
       configurationDialog: false,
       importFilesDialog: false,
       editTranslationDialog: false,
@@ -246,6 +289,11 @@ export default {
         text: '',
         langTarget: null,
         data: null
+      },
+      newLabel: {
+        group: '',
+        key: '',
+        labels: []
       }
     }
   },
@@ -388,7 +436,17 @@ export default {
       }
       return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4()
     },
-
+    formatGroup (group, fileType) {
+      if (fileType === 'resx') {
+        if (group === 'label') {
+          return 'lbl'
+        } else if (group === 'message') {
+          return 'msg'
+        }
+      } else {
+        return group
+      }
+    },
     UnFormatGroup (group, fileType) {
       if (fileType === 'resx') {
         if (group === 'lbl') {
@@ -400,6 +458,67 @@ export default {
         }
       } else {
         return group
+      }
+    },
+    addNewLabel () {
+      _.each(this.selectedFiles, (file) => {
+        if (file.selected) {
+          let labelValue = _.find(this.newLabel.labels, (item) => item.language === file.language).model
+
+          if (file.id) {
+            // Grava no arquivo
+            let label = {
+              fileID: file.id,
+              group: this.formatGroup(this.newLabel.group),
+              key: this.newLabel.key,
+              value: labelValue,
+              language: file.language
+            }
+
+            // união entre as labels já existente no arquivo com as novas labels traduzidas
+            let grpTrand = _.groupBy(this.translations, 'fileID')[file.id]
+            grpTrand ? grpTrand.push(label) : [].push(label)
+            // formata as labels no formato necessário para salvar o arquivo
+            return this.formatJSONToFile(file.path.split('.').pop(), grpTrand)
+              .then((newFileString) => {
+                // grava os dados no arquivo
+                return this.writeFile(file.path, newFileString)
+                  .then(() => {
+                    // Atualiza a lista de traduções
+                    this.translations.push(label)
+                    return true
+                  })
+              })
+              .catch(() => {
+                return console.log('err')
+              })
+          }
+        }
+      })
+      this.newLabel = { group: '',
+        key: '',
+        labels: [] }
+      // this.newLabel = Object.assign({}, this.newLabel)
+      // Clean the selected file list
+      this.selectedFiles = _.map(this.selectedFiles, (file) => {
+        file.selected = false
+        return file
+      })
+      console.log(this.translations)
+    },
+    onNewLabelFileClick (file) {
+      if (file.selected) {
+        if (!_.find(this.newLabel.labels, (item) => item.language === file.language)) {
+          this.newLabel.labels.push({
+            model: '',
+            language: file.language
+          })
+        }
+      } else {
+        if (!_.find(this.selectedFiles, (item) => item.language === file.language && item.selected)) {
+          _.remove(this.newLabel.labels, (item) => item.language === file.language)
+          this.newLabel = Object.assign({}, this.newLabel)
+        }
       }
     },
     editTranslation (chave, data, language) {
