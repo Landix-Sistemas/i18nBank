@@ -1,25 +1,11 @@
 <template>
   <q-layout>
-    <!--<q-header elevated class="q-pa-md q-gutter-y-sm bg-black text-white titlebar">-->
       <q-header elevated>
-      <!--<q-toolbar-title inset>
-        I18N Bank &amp; Manager
-      </q-toolbar-title>-->
       <q-toolbar class="glossy bg-black text-white">
-        <q-toolbar-title inset>I18N Bank &amp; Manager <!--inset -->
-          <!--<div slot="subtitle">Banco de dados e gerenciamento de traduções</div>-->
+        <q-toolbar-title inset>I18N Bank &amp; Manager
         </q-toolbar-title>
-        <!--<div slot="subtitle">Banco de dados e gerenciamento de traduções</div>-->
-        <!--<span slot="subtitle">Banco de dados e gerenciamento de traduções</span>-->
-        <!--<q-btn flat round dense icon="fa-cog" />-->
-        <!--<q-btn flat round dense icon="search" />-->
-        <q-btn flat icon="search" @click="configurationDialog = true">
-            <!--<q-icon name="search" />-->
-        </q-btn>
+        <q-btn flat icon="settings" @click="configurationDialog = true"/>
       </q-toolbar>
-      <!--<q-toolbar inset>
-        <q-toolbar-title><strong>Quasar</strong> Framework</q-toolbar-title>
-      </q-toolbar>-->
     </q-header>
     <q-page-container>
       <q-card>
