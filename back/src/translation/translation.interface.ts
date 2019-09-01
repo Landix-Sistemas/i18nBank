@@ -5,6 +5,7 @@ import { TranslationFormatDto } from './translationFormat.dto';
  * @interface
  */
 interface Translation {
+ // class Translation {
     /**
      * The translation ID.
      * @property {string}   _id

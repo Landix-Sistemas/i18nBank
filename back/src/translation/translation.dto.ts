@@ -25,6 +25,19 @@ import {
     _id: string; 
 
     /**
+     * The translation id.
+     * @property {string}   _emilia
+     */
+    @ApiModelProperty()
+    //@IsString()
+    @IsNotEmpty()
+    //_emilia: {chave: "isso", novo: "teste"}; 
+    //_emilia: object[]; 
+    _emilia: TranslationFormatDto[]; 
+
+
+
+    /**
      * The translation objects.
      * @property {TranslationFormatDto[]}   translations
      */

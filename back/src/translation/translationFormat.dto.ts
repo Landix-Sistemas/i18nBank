@@ -12,15 +12,6 @@ import {
   export class TranslationFormatDto {
   
     /**
-     * The translation value.
-     * @property {string}   value
-     */
-    @ApiModelProperty()
-    @IsString()
-    @IsNotEmpty() 
-    value: string; 
-
-    /**
      * The translation language.
      * @property {string}   language
      */
@@ -28,5 +19,14 @@ import {
     @IsString()
     @IsNotEmpty() 
     language: string; 
+
+    /**
+     * The translation value.
+     * @property {string}   value
+     */
+    @ApiModelProperty()
+    @IsString()
+    @IsNotEmpty() 
+    value: string;    
   }
   
