@@ -57,7 +57,7 @@ export class LanguageController {
 
   /**
    * API to create a new language.
-   * @param {LanguageDto} language The new job.
+   * @param {LanguageDto} language The new language.
    * @throws {InternalServerErrorException} If could not create the language.
    * @returns {Promise<Job>} Promise object represents the language.
    */

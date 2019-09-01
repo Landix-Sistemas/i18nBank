@@ -26,13 +26,21 @@ export class LanguageService {
         }
       });
       if (!exist){
-        nano.db.create(db_name); 
+        nano.db.create(db_name).then((body) => {
+            db.list({include_docs: true}).then((body) => {
+                body.rows.forEach((doc) => {
+                  this.languages.push(doc.doc);
+                });
+            });
+          }) 
       }
-      db.list({include_docs: true}).then((body) => {
-        body.rows.forEach((doc) => {
-          this.languages.push(doc.doc);
+      else {
+        db.list({include_docs: true}).then((body) => {
+          body.rows.forEach((doc) => {
+            this.languages.push(doc.doc);
+          });
         });
-      });
+     }
     });
   }
 
@@ -55,8 +63,8 @@ export class LanguageService {
 
   /**
    * Create a new language.
-   * @param {LanguageDto} job The new language.
-   * @throws {Error} If could not save the json file.
+   * @param {LanguageDto} language The new language.
+   * @throws {Error} If could not save.
    * @returns {Promise<Language>} Promise object represents the language.
    */
   async create(language: Language): Promise<Language> {
