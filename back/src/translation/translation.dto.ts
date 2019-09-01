@@ -42,7 +42,7 @@ import {
    // translations: Array<TranslationFormatDto>;
   }
 
-  //export default TranslationDto; // emilia coloquei apagar
+  //export default TranslationDto; // emilia apagar
 
   /*class TagDto {
     readonly name: string;
