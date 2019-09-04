@@ -18,15 +18,21 @@ export class TranslationService {
    * @constructs TranslationService
    */
   constructor() {
-    let exist = false
+    console.log("1 no construtor")
+    let exist2 = false
+    console.log("2")
+    console.log(exist2)
     nano.db.list().then((body) => {
      body.forEach((db) => {
+       console.log("existe: " + db)
         if (db == db_name)
         {
-          exist = true;
+          console.log("3")
+          exist2 = true;
         }
       });
-      if (!exist){
+      if (!exist2){
+        console.log("nao existe translation")
         nano.db.create(db_name).then((body) => {
             db.list({include_docs: true}).then((body) => {
                 body.rows.forEach((doc) => {
@@ -36,6 +42,7 @@ export class TranslationService {
           }) 
       }
       else {
+        console.log("ja existe translation")
         db.list({include_docs: true}).then((body) => {
           body.rows.forEach((doc) => {
             this.translations.push(doc.doc);

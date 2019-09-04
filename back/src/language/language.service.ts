@@ -26,6 +26,7 @@ export class LanguageService {
         }
       });
       if (!exist){
+        console.log("nao existe language")
         nano.db.create(db_name).then((body) => {
             db.list({include_docs: true}).then((body) => {
                 body.rows.forEach((doc) => {
@@ -35,6 +36,7 @@ export class LanguageService {
           }) 
       }
       else {
+        console.log("ja existe language")
         db.list({include_docs: true}).then((body) => {
           body.rows.forEach((doc) => {
             this.languages.push(doc.doc);
