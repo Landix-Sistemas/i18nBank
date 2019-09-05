@@ -17,6 +17,7 @@ export class LanguageService {
    * @constructs LanguageService
    */
   constructor() {
+    console.log("constru lang")
     let exist = false
     nano.db.list().then((body) => {
      body.forEach((db) => {
@@ -26,6 +27,7 @@ export class LanguageService {
         }
       });
       if (!exist){
+        console.log("cria language")
         nano.db.create(db_name).then((body) => {
             db.list({include_docs: true}).then((body) => {
                 body.rows.forEach((doc) => {

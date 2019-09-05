@@ -18,6 +18,7 @@ export class TranslationService {
    * @constructs TranslationService
    */
   constructor() {
+    console.log("constru trans")
     let exist = false
     nano.db.list().then((body) => {
      body.forEach((db) => {
@@ -27,6 +28,7 @@ export class TranslationService {
         }
       });
       if (!exist){
+        console.log("cria translation")
         nano.db.create(db_name).then((body) => {
             db.list({include_docs: true}).then((body) => {
                 body.rows.forEach((doc) => {

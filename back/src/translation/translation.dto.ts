@@ -25,27 +25,14 @@ import {
     _id: string; 
 
     /**
-     * The translation id.
-     * @property {string}   _emilia
-     */
-    @ApiModelProperty()
-    //@IsString()
-    @IsNotEmpty()
-    //_emilia: {chave: "isso", novo: "teste"}; 
-    //_emilia: object[]; 
-    _emilia: TranslationFormatDto[]; 
-
-
-
-    /**
      * The translation objects.
      * @property {TranslationFormatDto[]}   translations
      */
-    @ApiModelProperty()
     @IsArray()
     @IsDefined()
     @ValidateNested({ each: true })
     @Type(() => TranslationFormatDto)
+    @ApiModelProperty({ type: TranslationFormatDto, isArray: true })
     @IsNotEmpty()
     //translations: [TranslationFormatDto];
    // translations: object[];
