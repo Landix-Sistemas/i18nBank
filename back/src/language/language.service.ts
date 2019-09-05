@@ -37,6 +37,7 @@ export class LanguageService {
           }) 
       }
       else {
+        console.log("ja existe language")
         db.list({include_docs: true}).then((body) => {
           body.rows.forEach((doc) => {
             this.languages.push(doc.doc);

@@ -22,9 +22,11 @@ export class TranslationService {
     let exist = false
     nano.db.list().then((body) => {
      body.forEach((db) => {
+       console.log("existe: " + db)
         if (db == db_name)
         {
-          exist = true;
+          console.log("3")
+          exist2 = true;
         }
       });
       if (!exist){
@@ -38,6 +40,7 @@ export class TranslationService {
           }) 
       }
       else {
+        console.log("ja existe translation")
         db.list({include_docs: true}).then((body) => {
           body.rows.forEach((doc) => {
             this.translations.push(doc.doc);
