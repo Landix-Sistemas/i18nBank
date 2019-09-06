@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import Translation from './translation.interface'; 
-//import TranslationDto from './translation.dto';
 
 var nano = require('nano')('http://localhost:5984');
 var db_name = "translation";
@@ -18,19 +17,15 @@ export class TranslationService {
    * @constructs TranslationService
    */
   constructor() {
-    console.log("constru trans")
     let exist = false
     nano.db.list().then((body) => {
      body.forEach((db) => {
-       console.log("existe: " + db)
         if (db == db_name)
         {
-          console.log("3")
-          exist2 = true;
+          exist = true;
         }
       });
       if (!exist){
-        console.log("cria translation")
         nano.db.create(db_name).then((body) => {
             db.list({include_docs: true}).then((body) => {
                 body.rows.forEach((doc) => {
@@ -40,7 +35,6 @@ export class TranslationService {
           }) 
       }
       else {
-        console.log("ja existe translation")
         db.list({include_docs: true}).then((body) => {
           body.rows.forEach((doc) => {
             this.translations.push(doc.doc);
@@ -74,13 +68,34 @@ export class TranslationService {
    * @returns {Promise<Translation>} Promise object represents the translation.
    */
   async create(translation: Translation): Promise<Translation> {
-    //async create(translation: TranslationDto): Promise<Translation> {
     await db.insert(translation).then((body) => {
       const keys = [body.id];
       db.fetch({keys: keys}).then((data) => {
          this.translations.push(data.rows[0].doc)
       });
     })
+    return translation;
+  }
+
+  /**
+   * Update a translation.
+   * @param {string} id The translation id.
+   * @param {string} language The translation language.
+   * @param {string} value The translation value.
+   * @throws {Error} If could not update the translation or could not save the json file.
+   * @returns {Promise<Translation>} Promise object represents the translation.
+   */
+  //async update(id: string, translation: TranslationFormatDto): Promise<Translation> {
+  async update(id: string, language: string, value: string, translation: Translation): Promise<Translation> {
+    const trans = (this.translations.filter(item => item._id === id)[0] as object) as Translation;
+
+    if (!trans) {
+      throw new Error('Translation not found');
+    }
+
+   // Object.assign(job, editedJob);
+
+  //  await saveJsonFile(this.jobsDataFile, this.jobs);
     return translation;
   }
   

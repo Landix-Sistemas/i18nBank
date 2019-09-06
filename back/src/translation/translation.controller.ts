@@ -12,7 +12,6 @@ import {
 } from '@nestjs/common';
 import { TranslationService } from './translation.service';
 import { TranslationDto } from './translation.dto';
-import { TranslationFormatDto } from './translationFormat.dto';
 import Translation from './translation.interface';
 
 /**
@@ -60,13 +59,33 @@ export class TranslationController {
    * API to create a new translation.
    * @param {TranslationDto} translation The new translation.
    * @throws {InternalServerErrorException} If could not create the translation.
-   * @returns {Promise<Job>} Promise object represents the translation.
+   * @returns {Promise<Translation} Promise object represents the translation.
    */
   @Post()
   @ApiOperation({ title: 'Create a new translation' })
   async create(@Body() translation: TranslationDto): Promise<Translation> {
     try {
       return await this.translationService.create(translation);
+    } catch (err) {
+      throw new InternalServerErrorException(err);
+    }
+  }
+
+  /**
+   * API to update a translation.
+   * @param {string} id The translation id.
+   * @param {string} language The translation language.
+   * @param {string} value The translation value.
+   * @throws {InternalServerErrorException} If could not update the translation.
+   * @returns {Promise<Translation} Promise object represents the translation.
+   */
+  //@Put(':id')
+  @Put(':id/:language/:value')
+  @ApiOperation({ title: 'Update a translation' })
+  //async update(@Param('id') id: string, @Body() translation: TranslationFormatDto): Promise<TranslationDto> {
+  async update(@Param('id') id: string, @Param('language') language: string, @Param('value') value: string, @Body() translation: TranslationDto): Promise<Translation> {
+    try {
+      return await this.translationService.update(id, language, value, translation);
     } catch (err) {
       throw new InternalServerErrorException(err);
     }

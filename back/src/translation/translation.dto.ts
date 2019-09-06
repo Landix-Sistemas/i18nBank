@@ -34,18 +34,6 @@ import {
     @Type(() => TranslationFormatDto)
     @ApiModelProperty({ type: TranslationFormatDto, isArray: true })
     @IsNotEmpty()
-    //translations: [TranslationFormatDto];
-   // translations: object[];
    translations: TranslationFormatDto[];
-  //translations: [{value:string, language:string}];
-  //translations: TagDto[];
-   // translations: Array<TranslationFormatDto>;
+
   }
-
-  //export default TranslationDto; // emilia apagar
-
-  /*class TagDto {
-    readonly name: string;
-    readonly valor: string;
-} */
-  

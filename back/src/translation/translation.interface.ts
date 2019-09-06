@@ -24,11 +24,7 @@ interface Translation {
      * The translation object.
      * @property {array}   translations
      */
-   // translations: [TranslationFormatDto];
-    //translations: object[]
     translations: TranslationFormatDto[];
-   //translations: [{value:string, language:string}];
-   //translations: Array<TranslationFormatDto>;
   }
   
   export default Translation;

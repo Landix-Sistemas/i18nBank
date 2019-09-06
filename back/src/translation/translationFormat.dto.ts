@@ -1,6 +1,5 @@
 import {
     IsString,
-    IsArray,
     IsNotEmpty,
   } from 'class-validator'; 
   import { ApiModelProperty } from '@nestjs/swagger';
