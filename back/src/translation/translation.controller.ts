@@ -83,9 +83,9 @@ export class TranslationController {
   @Put(':id/:language/:value')
   @ApiOperation({ title: 'Update a translation' })
   //async update(@Param('id') id: string, @Body() translation: TranslationFormatDto): Promise<TranslationDto> {
-  async update(@Param('id') id: string, @Param('language') language: string, @Param('value') value: string, @Body() translation: TranslationDto): Promise<Translation> {
+  async update(@Param('id') id: string, @Param('language') language: string, @Param('value') value: string/*, @Body() translation: TranslationDto*/ ): Promise<Translation> {
     try {
-      return await this.translationService.update(id, language, value, translation);
+      return await this.translationService.update(id, language, value/*, translation*/);
     } catch (err) {
       throw new InternalServerErrorException(err);
     }

@@ -86,17 +86,19 @@ export class TranslationService {
    * @returns {Promise<Translation>} Promise object represents the translation.
    */
   //async update(id: string, translation: TranslationFormatDto): Promise<Translation> {
-  async update(id: string, language: string, value: string, translation: Translation): Promise<Translation> {
+  async update(id: string, language: string, value: string/*, translation: Translation*/): Promise<Translation> {
     const trans = (this.translations.filter(item => item._id === id)[0] as object) as Translation;
 
     if (!trans) {
       throw new Error('Translation not found');
     }
 
+    //trans._rev
    // Object.assign(job, editedJob);
 
   //  await saveJsonFile(this.jobsDataFile, this.jobs);
-    return translation;
+    //return translation;
+    return trans;
   }
   
 }
