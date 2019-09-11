@@ -319,7 +319,15 @@ export default {
       /* let lang = this.$gun.get(`language/${this.newLang}`).put({value: this.newLang, label: this.newLang})
       this.$gun.get(`languages`).set(lang)
       this.newLang = '' */
-      console.log(this.selectedLanguages)
+      this.$axios.post('/language', { '_id': this.newLang, 'label': this.newLang })
+        .then((response) => {
+          // this.$emit('logged', response.data)
+          console.log(response.data)
+        })
+        .catch(() => {
+          alert('Erro ao cadastrar nova linguagem')
+        })
+      // console.log(this.selectedLanguages)
     },
     /**
      * Add a JSON or RESX translation file
