@@ -83,22 +83,25 @@ export class TranslationService {
    * @param {string} language The translation language.
    * @param {string} value The translation value.
    * @throws {Error} If could not update the translation or could not save the json file.
-   * @returns {Promise<Translation>} Promise object represents the translation.
    */
-  //async update(id: string, translation: TranslationFormatDto): Promise<Translation> {
-  async update(id: string, language: string, value: string/*, translation: Translation*/): Promise<Translation> {
-    const trans = (this.translations.filter(item => item._id === id)[0] as object) as Translation;
+  async update(id: string, language: string, value: string) {
+    const transIndex = this.translations.findIndex(item => item._id === id);
 
-    if (!trans) {
+    if (transIndex < 0) {
       throw new Error('Translation not found');
     }
 
-    //trans._rev
-   // Object.assign(job, editedJob);
+    this.translations.splice(transIndex, 1);
 
-  //  await saveJsonFile(this.jobsDataFile, this.jobs);
-    //return translation;
-    return trans;
+    db.list({include_docs: true,'key': id}).then((body) => {
+      (body.rows[0].doc.translations.filter(translation => translation.language === language)[0]).value = value
+      db.insert({ _id: id, _rev: body.rows[0].doc._rev, translations: body.rows[0].doc.translations }).then((body) => {
+         const keys = [body.id];
+         db.fetch({keys: keys}).then((data) => {
+         this.translations.push(data.rows[0].doc)
+      });
+      })
+    });
   }
   
 }

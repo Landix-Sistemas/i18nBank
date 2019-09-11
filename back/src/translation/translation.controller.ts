@@ -6,7 +6,6 @@ import {
   Body,
   Param,
   Put,
-  Delete,
   NotFoundException,
   InternalServerErrorException,
 } from '@nestjs/common';
@@ -77,15 +76,12 @@ export class TranslationController {
    * @param {string} language The translation language.
    * @param {string} value The translation value.
    * @throws {InternalServerErrorException} If could not update the translation.
-   * @returns {Promise<Translation} Promise object represents the translation.
    */
-  //@Put(':id')
   @Put(':id/:language/:value')
   @ApiOperation({ title: 'Update a translation' })
-  //async update(@Param('id') id: string, @Body() translation: TranslationFormatDto): Promise<TranslationDto> {
-  async update(@Param('id') id: string, @Param('language') language: string, @Param('value') value: string/*, @Body() translation: TranslationDto*/ ): Promise<Translation> {
+  async update(@Param('id') id: string, @Param('language') language: string, @Param('value') value: string){
     try {
-      return await this.translationService.update(id, language, value/*, translation*/);
+      return await this.translationService.update(id, language, value);
     } catch (err) {
       throw new InternalServerErrorException(err);
     }
