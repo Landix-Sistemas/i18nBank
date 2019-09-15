@@ -70,7 +70,8 @@
               <legend>Linguagem</legend>
               <div class="col-md-12">
                 <q-input v-model="newLang" float-label="Nova lingua" />
-                <q-btn color="black" class="pull-right" @click="addNewLanguage">
+                  <q-btn color="black" class="pull-right" @click="addNewLanguage">
+                  <!-- <q-btn color="black" class="pull-right" @click="getDatabaseTranslations"> -->
                   <q-icon name="add" />
                   Add
                 </q-btn>
@@ -258,7 +259,8 @@ export default {
       file: null,
       selectedFiles: [],
       // languages: ['Espanhol', 'Inglês', 'Português'],
-      languages: ['pt-BR', 'en-US', 'es-CL'],
+      // languages: ['pt-BR', 'en-US', 'es-CL'],
+      languages: [], // emilia
       selectedLanguages: [],
       fileLanguage: null,
       translations: [],
@@ -274,6 +276,10 @@ export default {
         labels: []
       }
     }
+  },
+  mounted () {
+    this.getLanguages()
+    this.getDatabaseTranslations()
   },
   watch: {
     translations () {
@@ -311,23 +317,76 @@ export default {
   },
   methods: {
     /**
+     * Load the list of registered languages
+     *
+     * @return {void}
+     */
+    getLanguages () {
+      let that = this
+      this.$axios.get('/language')
+        .then((response) => {
+          response.data.forEach(function (item) {
+            that.languages.push(item.label)
+          })
+        })
+        .catch(() => {
+          alert('Erro ao selecionar linguagens')
+        })
+    },
+    /**
      * Add new language to the database
      *
      * @return {void}
     */
     addNewLanguage () {
-      /* let lang = this.$gun.get(`language/${this.newLang}`).put({value: this.newLang, label: this.newLang})
-      this.$gun.get(`languages`).set(lang)
-      this.newLang = '' */
+      let that = this
       this.$axios.post('/language', { '_id': this.newLang, 'label': this.newLang })
         .then((response) => {
-          // this.$emit('logged', response.data)
-          console.log(response.data)
+          that.languages.push(response.data.label)
+          this.newLang = ''
         })
         .catch(() => {
           alert('Erro ao cadastrar nova linguagem')
         })
-      // console.log(this.selectedLanguages)
+    },
+    /**
+     * Load the list of registered translations
+     *
+     * @return {void}
+     */
+    getDatabaseTranslations () {
+      Loading.show()
+      let trns = []
+      let that = this
+      this.$axios.get('/translation')
+        .then((response) => {
+          response.data.forEach(function (item) {
+            item.translations.forEach(function (trans) {
+              // Add the to the list of inserted languages
+              if (!_.find(that.selectedLanguages, (item) => { return item === trans.language })) {
+                that.selectedLanguages.push(trans.language)
+              }
+              if (!_.find(that.selectedFiles, (item) => item.name === `Banco (${trans.language})`)) {
+                // Add to the list of selected files
+                that.selectedFiles.push({
+                  name: `Banco (${trans.language})`,
+                  language: trans.language,
+                  selected: false
+                })
+              }
+              trns.push({
+                key: item._id,
+                value: trans.value,
+                language: trans.language
+              })
+            })
+          })
+          that.translations = that.translations.concat(trns)
+          Loading.hide()
+        })
+        .catch(() => {
+          alert('Erro ao selecionar traduções')
+        })
     },
     /**
      * Add a JSON or RESX translation file
@@ -401,7 +460,7 @@ export default {
               }
             })
           }
-          console.log(this.translations)
+          // console.log(this.translations)
         }
       }
 
@@ -448,6 +507,7 @@ export default {
       }
     },
     addNewLabel () {
+      let dbLg = []
       _.each(this.selectedFiles, (file) => {
         if (file.selected) {
           let labelValue = _.find(this.newLabel.labels, (item) => item.language === file.language).model
@@ -479,19 +539,42 @@ export default {
               .catch(() => {
                 return console.log('err')
               })
+          } else {
+          // Grava no banco
+            dbLg.push({ 'language': file.language, 'value': labelValue })
           }
         }
       })
+      if (dbLg.length) {
+        let ch = this.newLabel.key
+        this.$axios.get(`/translation/${this.newLabel.key}`)
+          .then((response) => {
+            alert('Já existe este código')
+          })
+          .catch(() => {
+            console.log('não encontrou no banco')
+            let teste = {
+              '_id': ch,
+              'translations': dbLg
+            }
+            this.$axios.post('/translation', teste)
+              .then((response) => {
+                console.log('inseriu nova traducao')
+              })
+              .catch(() => {
+                alert('Erro ao inserir nova traducao no banco')
+              })
+          })
+      }
       this.newLabel = { group: '',
         key: '',
         labels: [] }
-      // this.newLabel = Object.assign({}, this.newLabel)
       // Clean the selected file list
       this.selectedFiles = _.map(this.selectedFiles, (file) => {
         file.selected = false
         return file
       })
-      console.log(this.translations)
+      // console.log(this.translations)
     },
     onNewLabelFileClick (file) {
       if (file.selected) {
@@ -514,32 +597,26 @@ export default {
       this.edit.text = data
     },
     saveEdition () {
-      // console.log(this.edit.data)
       this.data[this.data.findIndex(el => el.name === this.edit.data)][this.edit.langTarget] = this.edit.text
 
       let translations = _.groupBy(this.translations, 'fileID')
       let promises = []
       Loading.show()
 
+      console.log(this.selectedFiles)
       // Update all selected files
       _.each(_.groupBy(this.selectedFiles, 'selected')['true'], (file) => {
         if (file.id) {
           let fileTranslations = translations[file.id]
-          // let editedLabelIndex = fileTranslations ? _.findIndex(fileTranslations, (item) => { return item.key === this.edit.data[Object.keys(this.edit.data)[0]][0].key }) : -1
           let editedLabelIndex = fileTranslations ? _.findIndex(fileTranslations, (item) => { return item.key === this.edit.data }) : -1
-          // console.log(this.edit.data)
-          // console.log(this.edit.data[Object.keys(this.edit.data)[0]][0].key)
           let newTranslation
 
           // if already exist the key in the file just change the value else create a translate object
           if (editedLabelIndex >= 0) {
-            console.log('editedLabelIndex >= 0')
             fileTranslations[editedLabelIndex].value = this.edit.text
           } else {
             newTranslation = {
               fileID: file.id,
-              // group: this.edit.data[Object.keys(this.edit.data)[0]][0].group,
-              // key: this.edit.data[Object.keys(this.edit.data)[0]][0].key,
               group: this.edit.data,
               key: this.edit.data,
               value: this.edit.text,
@@ -549,23 +626,52 @@ export default {
             fileTranslations.push(newTranslation)
             this.translations.push(newTranslation)
           }
-          // console.log(fileTranslations)
-
           // formata as labels no formato necessário para salvar o arquivo
           promises.push(this.formatJSONToFile(file.path.split('.').pop(), fileTranslations)
             .then((newFileString) => {
               // grava os dados no arquivo
-              // console.log(newFileString)
               return this.writeFile(file.path, newFileString)
             })
             .catch((err) => {
               return console.log(err)
             }))
+        } else {
+          // Grava no banco
+          // let that = this
+          console.log('banco')
+          this.$axios.get(`/translation/${this.edit.data}`)
+            .then((response) => {
+              this.$axios.put(`/translation/${this.edit.data}/${this.edit.langTarget}/${this.edit.text}`)
+                .then((response) => {
+                  let newTranslation = {
+                    fileID: undefined,
+                    group: this.edit.data,
+                    key: this.edit.data,
+                    value: this.edit.text,
+                    language: this.edit.langTarget
+                  }
+                  this.translations.push(newTranslation)
+                  console.log(response)
+                })
+                .catch(() => {
+                  alert('Erro ao editar tradução no banco')
+                })
+            })
+            .catch(() => {
+              this.$axios.post('/translation', { '_id': this.edit.data, 'translations': [ { 'language': this.edit.langTarget, 'value': this.edit.text } ] })
+                .then((response) => {
+                  // that.languages.push(response.data.label)
+                  // this.newLang = ''
+                  console.log('inseriu nova traducao')
+                })
+                .catch(() => {
+                  alert('Erro ao inserir nova traducao no banco')
+                })
+            })
         }
       })
 
       Promise.all(promises).then(() => {
-        // this.$refs.editTranslation.close()
         // Clean the selected file list
         this.selectedFiles = _.map(this.selectedFiles, (file) => {
           file.selected = false
