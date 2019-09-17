@@ -94,7 +94,10 @@ export class TranslationService {
     this.translations.splice(transIndex, 1);
 
     db.list({include_docs: true,'key': id}).then((body) => {
-      (body.rows[0].doc.translations.filter(translation => translation.language === language)[0]).value = value
+      if (body.rows[0].doc.translations.some(translation => translation.language === language))
+         (body.rows[0].doc.translations.filter(translation => translation.language === language)[0]).value = value
+      else
+          body.rows[0].doc.translations.push({'language': language, 'value': value})
       db.insert({ _id: id, _rev: body.rows[0].doc._rev, translations: body.rows[0].doc.translations }).then((body) => {
          const keys = [body.id];
          db.fetch({keys: keys}).then((data) => {
