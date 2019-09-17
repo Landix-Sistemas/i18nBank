@@ -48,7 +48,8 @@
                         <q-icon name="edit" />
                       </q-btn>
                       <q-btn small flat>
-                        <q-icon name="save_alt" />
+                        <!--<q-icon name="save_alt" />-->
+                        <q-icon name="save_alt" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>
                       </q-btn>
                     </q-td>
                   </q-tr>
@@ -468,7 +469,54 @@ export default {
 
       reader.readAsText(this.file[0])
     },
+    addToDataBase (chave, data, language) {
+      // Grava no banco
+      console.log('banco')
+      this.$axios.get(`/translation/${chave}`)
+        .then((response) => {
+          this.$axios.put(`/translation/${chave}/${language}/${data}`)
+            .then((response) => {
+              console.log(response)
+              // emilia depois de inserir tirar o botão de inserir no banco, porque já inseriu
+            })
+            .catch(() => {
+              alert('Erro ao editar tradução no banco')
+            })
+        })
+        .catch(() => {
+          this.$axios.post('/translation', { '_id': chave, 'translations': [ { 'language': language, 'value': data } ] })
+            .then((response) => {
+              console.log('inseriu nova traducao')
+              // emilia depois de inserir tirar o botão de inserir no banco
+            })
+            .catch(() => {
+              alert('Erro ao inserir nova traducao no banco')
+            })
+        })
+      /* let lang = this.$gun.get(`language/${translation[0].language}`)
+      let group = this.$gun.get(`group/${translation[0].group}`)
 
+      let translationDB = this.$gun.get(`translation/${translation[0].key}-${translation[0].language}`)
+
+      translationDB.path('key').put(translation[0].key)
+      translationDB.path('value').put(translation[0].value)
+      translationDB.path('language').put(lang)
+      translationDB.path('group').put(group)
+
+      this.$gun.get(`translations`).set(translationDB)
+      this.translations.push({
+        group: translation[0].group,
+        key: translation[0].key,
+        value: translation[0].value,
+        language: translation[0].language
+      }) */
+    },
+    alreadyInDataBase (chave, language) {
+      console.log('alreadyInDataBase')
+      // console.log(translationDB)
+      // return !!_.find(translationDB, (item) => !item.fileID)
+      return !!_.find(this.translations, (item) => item.key === chave && item.language === language && !item.fileID)
+    },
     /**
      * Generate a new GUID.
      *
@@ -508,6 +556,7 @@ export default {
     },
     addNewLabel () {
       let dbLg = []
+      let that = this
       _.each(this.selectedFiles, (file) => {
         if (file.selected) {
           let labelValue = _.find(this.newLabel.labels, (item) => item.language === file.language).model
@@ -560,6 +609,19 @@ export default {
             this.$axios.post('/translation', teste)
               .then((response) => {
                 console.log('inseriu nova traducao')
+                dbLg.forEach(function (item) {
+                  let label = {
+                    fileID: undefined,
+                    group: undefined,
+                    key: ch,
+                    value: item.value,
+                    language: item.language
+                  }
+                  // console.log(label)
+                  // console.log(that.translations)
+                  // this.translations.push(label)
+                  that.translations.push(label)
+                })
               })
               .catch(() => {
                 alert('Erro ao inserir nova traducao no banco')
@@ -598,6 +660,7 @@ export default {
     },
     saveEdition () {
       this.data[this.data.findIndex(el => el.name === this.edit.data)][this.edit.langTarget] = this.edit.text
+      // console.log(this.data)
 
       let translations = _.groupBy(this.translations, 'fileID')
       let promises = []
@@ -643,15 +706,8 @@ export default {
             .then((response) => {
               this.$axios.put(`/translation/${this.edit.data}/${this.edit.langTarget}/${this.edit.text}`)
                 .then((response) => {
-                  let newTranslation = {
-                    fileID: undefined,
-                    group: this.edit.data,
-                    key: this.edit.data,
-                    value: this.edit.text,
-                    language: this.edit.langTarget
-                  }
-                  this.translations.push(newTranslation)
                   console.log(response)
+                  // console.log(`/translation/${this.edit.data}/${this.edit.langTarget}/${this.edit.text}`)
                 })
                 .catch(() => {
                   alert('Erro ao editar tradução no banco')
