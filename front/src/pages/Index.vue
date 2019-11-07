@@ -51,7 +51,8 @@
                       <!--<q-btn id=String.Concat(props.row.name, lang) small flat icon="save_alt" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>-->
                       <!--<q-btn id=props.row.name small flat icon="save_alt" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>-->
                       <!--<q-btn id="{{props.row.name}}" small flat icon="save_alt" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>-->
-                      <q-btn id="ALT101" small flat icon="save_alt" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>
+                      <!--<q-btn id="ALT101" small flat icon="save_alt" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>-->
+                      <q-btn :id="props.row.name + lang" small flat icon="save_alt" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>
                       <q-btn small flat icon="report" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>
                     </q-td>
                   </q-tr>
@@ -483,7 +484,8 @@ export default {
               console.log(response)
               // emilia depois de inserir tirar o botão de inserir no banco, porque já inseriu
               // document.getElementById('ALT101es-CL').classList.add('hidden')
-              document.getElementById('ALT101').classList.add('hidden')
+              // document.getElementById('ALT101').classList.add('hidden')
+              document.getElementById(name).classList.add('hidden')
             })
             .catch(() => {
               alert('Erro ao editar tradução no banco')
@@ -495,7 +497,8 @@ export default {
               console.log('inseriu nova traducao')
               // emilia depois de inserir tirar o botão de inserir no banco
               // document.getElementById('ALT101es-CL').classList.add('hidden')
-              document.getElementById('ALT101').classList.add('hidden')
+              // document.getElementById('ALT101').classList.add('hidden')
+              document.getElementById(name).classList.add('hidden')
             })
             .catch(() => {
               alert('Erro ao inserir nova traducao no banco')
