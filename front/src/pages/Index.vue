@@ -44,13 +44,15 @@
                     <q-td key="chave" :props="props">{{ props.row.name }}</q-td>
                     <q-td v-for="(lang) in selectedLanguages" :props="props" :key="lang">
                       {{props.row[lang] ? props.row[lang] : '-'}}
-                        <q-btn small flat @click="editTranslation(props.row.name, props.row[lang], lang); editTranslationDialog = true">
-                        <q-icon name="edit" />
-                      </q-btn>
-                      <q-btn small flat>
-                        <!--<q-icon name="save_alt" />-->
-                        <q-icon name="save_alt" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>
-                      </q-btn>
+                      <q-btn small flat icon="edit" @click="editTranslation(props.row.name, props.row[lang], lang); editTranslationDialog = true"/>
+                      <!--<q-btn id="ALT101es-CL" small flat icon="save_alt" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>-->
+                      <!--<q-btn id="@(props.row.name + lang)" small flat icon="save_alt" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>-->
+                      <!--<q-btn id="{{props.row.name + lang}}" small flat icon="save_alt" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>-->
+                      <!--<q-btn id=String.Concat(props.row.name, lang) small flat icon="save_alt" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>-->
+                      <!--<q-btn id=props.row.name small flat icon="save_alt" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>-->
+                      <!--<q-btn id="{{props.row.name}}" small flat icon="save_alt" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>-->
+                      <q-btn id="ALT101" small flat icon="save_alt" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>
+                      <q-btn small flat icon="report" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>
                     </q-td>
                   </q-tr>
                 </template>
@@ -472,12 +474,16 @@ export default {
     addToDataBase (chave, data, language) {
       // Grava no banco
       console.log('banco')
+      let name = chave + language
+      console.log(name)
       this.$axios.get(`/translation/${chave}`)
         .then((response) => {
           this.$axios.put(`/translation/${chave}/${language}/${data}`)
             .then((response) => {
               console.log(response)
               // emilia depois de inserir tirar o botão de inserir no banco, porque já inseriu
+              // document.getElementById('ALT101es-CL').classList.add('hidden')
+              document.getElementById('ALT101').classList.add('hidden')
             })
             .catch(() => {
               alert('Erro ao editar tradução no banco')
@@ -488,6 +494,8 @@ export default {
             .then((response) => {
               console.log('inseriu nova traducao')
               // emilia depois de inserir tirar o botão de inserir no banco
+              // document.getElementById('ALT101es-CL').classList.add('hidden')
+              document.getElementById('ALT101').classList.add('hidden')
             })
             .catch(() => {
               alert('Erro ao inserir nova traducao no banco')
@@ -512,10 +520,13 @@ export default {
       }) */
     },
     alreadyInDataBase (chave, language) {
-      console.log('alreadyInDataBase')
-      // console.log(translationDB)
-      // return !!_.find(translationDB, (item) => !item.fileID)
-      return !!_.find(this.translations, (item) => item.key === chave && item.language === language && !item.fileID)
+      // emilia importante descomentar !!!
+      /* return !!_.find(this.translations, (item) => item.key === chave && item.language === language && !item.fileID) */
+      if (chave === 'ALT101' && language === 'es-CL') {
+        return false
+      } else {
+        return true
+      }
     },
     /**
      * Generate a new GUID.
