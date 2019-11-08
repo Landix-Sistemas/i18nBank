@@ -45,15 +45,8 @@
                     <q-td v-for="(lang) in selectedLanguages" :props="props" :key="lang">
                       {{props.row[lang] ? props.row[lang] : '-'}}
                       <q-btn small flat icon="edit" @click="editTranslation(props.row.name, props.row[lang], lang); editTranslationDialog = true"/>
-                      <!--<q-btn id="ALT101es-CL" small flat icon="save_alt" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>-->
-                      <!--<q-btn id="@(props.row.name + lang)" small flat icon="save_alt" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>-->
-                      <!--<q-btn id="{{props.row.name + lang}}" small flat icon="save_alt" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>-->
-                      <!--<q-btn id=String.Concat(props.row.name, lang) small flat icon="save_alt" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>-->
-                      <!--<q-btn id=props.row.name small flat icon="save_alt" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>-->
-                      <!--<q-btn id="{{props.row.name}}" small flat icon="save_alt" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>-->
-                      <!--<q-btn id="ALT101" small flat icon="save_alt" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>-->
-                      <q-btn :id="props.row.name + lang" small flat icon="save_alt" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>
-                      <q-btn small flat icon="report" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>
+                      <q-btn :id="'toDataBase' + props.row.name + lang" small flat icon="save_alt" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>
+                      <q-btn :id="'solveConflict' + props.row.name + lang" small flat icon="report" v-if="props.row[lang] && withConflict(props.row.name, lang)" @click="solveConflict(props.row.name, props.row[lang], lang); solveConflictDialog = true"/>
                     </q-td>
                   </q-tr>
                 </template>
@@ -219,6 +212,28 @@
         </q-bar>
       </q-card>
     </q-dialog>
+
+    <q-dialog v-model="solveConflictDialog" persistent>
+      <q-card style="width: 700px; max-width: 80vw;">
+        <q-bar class="row items-center bg-black text-white glossy">
+          <div class="text-h6 q-pl-sm">Resolver Conflito</div>
+          <q-space />
+          <q-btn icon="close" flat v-close-popup />
+        </q-bar>
+        <q-card-section class="layout-padding">
+            <div class="col-md-12">
+              <q-checkbox v-for="(file, index) in editableFiles()" v-model="file.selected" :label="file.name" v-bind:key="index"/>
+            </div>
+        </q-card-section>
+        <q-bar align="right" class="row bg-black text-white glossy">
+          <q-space />
+          <q-btn flat @click="saveSolveConflict" v-close-popup>
+            <q-icon name="check" />
+            Confirmar
+          </q-btn>
+        </q-bar>
+      </q-card>
+    </q-dialog>
     </q-page-container>
   </q-layout>
 </template>
@@ -260,6 +275,7 @@ export default {
       configurationDialog: false,
       importFilesDialog: false,
       editTranslationDialog: false,
+      solveConflictDialog: false,
       file: null,
       selectedFiles: [],
       // languages: ['Espanhol', 'Inglês', 'Português'],
@@ -268,6 +284,7 @@ export default {
       selectedLanguages: [],
       fileLanguage: null,
       translations: [],
+      translationsWithConflict: [],
       filteredTranslations: this.groupedTranslations,
       edit: {
         text: '',
@@ -451,6 +468,22 @@ export default {
                 console.log('error converting file to json', err)
               } else {
                 _.each(res, (value, key) => {
+                  if (key === 'ALT101' && value === '¡La 101 do arquivo!') {
+                    console.log('¡La 101 do arquivo!')
+                  }
+                  // emilia parei aqui
+                  var conflict = _.find(this.translations, (item) => item.key === key && item.language === that.fileLanguage && item.value !== value)
+                  // if (_.find(this.translations, (item) => item.key === key && item.language === that.fileLanguage && item.value !== value)) {
+                  if (typeof (conflict) !== 'undefined' && conflict.length) {
+                    let labelWithConflict = {
+                      fileID: fileId,
+                      key: key,
+                      valueFile: value,
+                      valueDt: conflict.value,
+                      language: that.fileLanguage
+                    }
+                    this.translationsWithConflict.push(labelWithConflict)
+                  }
                   this.translations.push({
                     fileID: fileId,
                     /* group: this.UnFormatGroup(key.split('_')[0], 'resx'),
@@ -464,7 +497,6 @@ export default {
               }
             })
           }
-          // console.log(this.translations)
         }
       }
 
@@ -474,8 +506,7 @@ export default {
     },
     addToDataBase (chave, data, language) {
       // Grava no banco
-      console.log('banco')
-      let name = chave + language
+      let name = 'toDataBase' + chave + language
       console.log(name)
       this.$axios.get(`/translation/${chave}`)
         .then((response) => {
@@ -483,8 +514,6 @@ export default {
             .then((response) => {
               console.log(response)
               // emilia depois de inserir tirar o botão de inserir no banco, porque já inseriu
-              // document.getElementById('ALT101es-CL').classList.add('hidden')
-              // document.getElementById('ALT101').classList.add('hidden')
               document.getElementById(name).classList.add('hidden')
             })
             .catch(() => {
@@ -496,8 +525,6 @@ export default {
             .then((response) => {
               console.log('inseriu nova traducao')
               // emilia depois de inserir tirar o botão de inserir no banco
-              // document.getElementById('ALT101es-CL').classList.add('hidden')
-              // document.getElementById('ALT101').classList.add('hidden')
               document.getElementById(name).classList.add('hidden')
             })
             .catch(() => {
@@ -523,13 +550,10 @@ export default {
       }) */
     },
     alreadyInDataBase (chave, language) {
-      // emilia importante descomentar !!!
-      /* return !!_.find(this.translations, (item) => item.key === chave && item.language === language && !item.fileID) */
-      if (chave === 'ALT101' && language === 'es-CL') {
-        return false
-      } else {
-        return true
-      }
+      return !!_.find(this.translations, (item) => item.key === chave && item.language === language && !item.fileID)
+    },
+    withConflict (chave, language) {
+      return _.find(this.translationsWithConflict, (item) => item.key === chave && item.language === language)
     },
     /**
      * Generate a new GUID.
@@ -631,9 +655,6 @@ export default {
                     value: item.value,
                     language: item.language
                   }
-                  // console.log(label)
-                  // console.log(that.translations)
-                  // this.translations.push(label)
                   that.translations.push(label)
                 })
               })
@@ -650,7 +671,6 @@ export default {
         file.selected = false
         return file
       })
-      // console.log(this.translations)
     },
     onNewLabelFileClick (file) {
       if (file.selected) {
@@ -672,9 +692,13 @@ export default {
       this.edit.langTarget = language
       this.edit.text = data
     },
+    solveConflict (chave, data, language) {
+      this.edit.data = chave
+      this.edit.langTarget = language
+      this.edit.text = data
+    },
     saveEdition () {
       this.data[this.data.findIndex(el => el.name === this.edit.data)][this.edit.langTarget] = this.edit.text
-      // console.log(this.data)
 
       let translations = _.groupBy(this.translations, 'fileID')
       let promises = []
@@ -714,14 +738,12 @@ export default {
             }))
         } else {
           // Grava no banco
-          // let that = this
           console.log('banco')
           this.$axios.get(`/translation/${this.edit.data}`)
             .then((response) => {
               this.$axios.put(`/translation/${this.edit.data}/${this.edit.langTarget}/${this.edit.text}`)
                 .then((response) => {
                   console.log(response)
-                  // console.log(`/translation/${this.edit.data}/${this.edit.langTarget}/${this.edit.text}`)
                 })
                 .catch(() => {
                   alert('Erro ao editar tradução no banco')
@@ -730,8 +752,6 @@ export default {
             .catch(() => {
               this.$axios.post('/translation', { '_id': this.edit.data, 'translations': [ { 'language': this.edit.langTarget, 'value': this.edit.text } ] })
                 .then((response) => {
-                  // that.languages.push(response.data.label)
-                  // this.newLang = ''
                   console.log('inseriu nova traducao')
                 })
                 .catch(() => {
@@ -749,9 +769,11 @@ export default {
         })
         return Loading.hide()
       }).catch(() => {
-        // this.$refs.editTranslation.close()
         return Loading.hide()
       })
+    },
+    saveSolveConflict () {
+      // document.getElementById(name).classList.add('hidden')
     },
     /**
      * Write the file with all labels.
