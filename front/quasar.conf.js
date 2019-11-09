@@ -55,7 +55,8 @@ module.exports = function (ctx) {
         'QTd',
         'QMarkupTable',
         'QPopupEdit',
-        'QTooltip'
+        'QTooltip',
+        'QRadio'
       ],
 
       directives: [

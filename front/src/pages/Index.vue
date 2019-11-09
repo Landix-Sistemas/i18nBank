@@ -222,7 +222,7 @@
         </q-bar>
         <q-card-section class="layout-padding">
             <div class="col-md-12">
-              <q-checkbox v-for="(file, index) in editableFiles()" v-model="file.selected" :label="file.name" v-bind:key="index"/>
+              <q-radio v-for="(file, index) in editableFiles()" v-model="file.selected" :val="file.name" :label="file.name" v-bind:key="index"/>
             </div>
         </q-card-section>
         <q-bar align="right" class="row bg-black text-white glossy">
@@ -468,13 +468,8 @@ export default {
                 console.log('error converting file to json', err)
               } else {
                 _.each(res, (value, key) => {
-                  if (key === 'ALT101' && value === '¡La 101 do arquivo!') {
-                    console.log('¡La 101 do arquivo!')
-                  }
-                  // emilia parei aqui
                   var conflict = _.find(this.translations, (item) => item.key === key && item.language === that.fileLanguage && item.value !== value)
-                  // if (_.find(this.translations, (item) => item.key === key && item.language === that.fileLanguage && item.value !== value)) {
-                  if (typeof (conflict) !== 'undefined' && conflict.length) {
+                  if (Object.keys(conflict).length > 0) {
                     let labelWithConflict = {
                       fileID: fileId,
                       key: key,
@@ -483,6 +478,7 @@ export default {
                       language: that.fileLanguage
                     }
                     this.translationsWithConflict.push(labelWithConflict)
+                    console.log(this.translationsWithConflict)
                   }
                   this.translations.push({
                     fileID: fileId,
