@@ -220,11 +220,8 @@
           <q-space />
           <q-btn icon="close" flat v-close-popup />
         </q-bar>
-        <q-card-section class="layout-padding">
-            <div class="col-md-12">
-              <q-radio v-for="(file, index) in editableFiles()" v-model="file.selected" :val="file.name" :label="file.name" v-bind:key="index"/>
-            </div>
-        </q-card-section>
+        <p class="caption q-pl-sm">Selecione a opção correta:</p>
+        <q-radio class="col-md-12" v-for="(file, index) in conflictFiles()" v-model= "radioSelected" :label="file.value" :val="file.key" v-bind:key="index"/>
         <q-bar align="right" class="row bg-black text-white glossy">
           <q-space />
           <q-btn flat @click="saveSolveConflict" v-close-popup>
@@ -285,6 +282,7 @@ export default {
       fileLanguage: null,
       translations: [],
       translationsWithConflict: [],
+      radioSelected: 'dt',
       filteredTranslations: this.groupedTranslations,
       edit: {
         text: '',
@@ -468,17 +466,17 @@ export default {
                 console.log('error converting file to json', err)
               } else {
                 _.each(res, (value, key) => {
-                  var conflict = _.find(this.translations, (item) => item.key === key && item.language === that.fileLanguage && item.value !== value)
-                  if (Object.keys(conflict).length > 0) {
+                  let pos = this.translations.findIndex(item => item.key === key && item.language === that.fileLanguage && item.value !== value)
+                  if (pos >= 0) {
                     let labelWithConflict = {
                       fileID: fileId,
                       key: key,
                       valueFile: value,
-                      valueDt: conflict.value,
-                      language: that.fileLanguage
+                      valueDt: this.translations[pos].value,
+                      language: that.fileLanguage,
+                      path: this.file[0].path
                     }
                     this.translationsWithConflict.push(labelWithConflict)
-                    console.log(this.translationsWithConflict)
                   }
                   this.translations.push({
                     fileID: fileId,
@@ -527,23 +525,6 @@ export default {
               alert('Erro ao inserir nova traducao no banco')
             })
         })
-      /* let lang = this.$gun.get(`language/${translation[0].language}`)
-      let group = this.$gun.get(`group/${translation[0].group}`)
-
-      let translationDB = this.$gun.get(`translation/${translation[0].key}-${translation[0].language}`)
-
-      translationDB.path('key').put(translation[0].key)
-      translationDB.path('value').put(translation[0].value)
-      translationDB.path('language').put(lang)
-      translationDB.path('group').put(group)
-
-      this.$gun.get(`translations`).set(translationDB)
-      this.translations.push({
-        group: translation[0].group,
-        key: translation[0].key,
-        value: translation[0].value,
-        language: translation[0].language
-      }) */
     },
     alreadyInDataBase (chave, language) {
       return !!_.find(this.translations, (item) => item.key === chave && item.language === language && !item.fileID)
@@ -689,9 +670,10 @@ export default {
       this.edit.text = data
     },
     solveConflict (chave, data, language) {
+      this.radioSelected = 'dt'
       this.edit.data = chave
       this.edit.langTarget = language
-      this.edit.text = data
+      // this.edit.text = data
     },
     saveEdition () {
       this.data[this.data.findIndex(el => el.name === this.edit.data)][this.edit.langTarget] = this.edit.text
@@ -769,7 +751,40 @@ export default {
       })
     },
     saveSolveConflict () {
-      // document.getElementById(name).classList.add('hidden')
+      let name = 'solveConflict' + this.edit.data + this.edit.langTarget
+      let pos = this.translationsWithConflict.findIndex(el => el.key === this.edit.data)
+      if (this.radioSelected === 'dt') {
+        console.log('Manter o do banco, ou seja, editar no Arquivo!')
+        this.data[this.data.findIndex(el => el.name === this.edit.data)][this.edit.langTarget] = this.translationsWithConflict[pos].valueDt
+        let translations = _.groupBy(this.translations, 'fileID')
+        let fileTranslations = translations[this.translationsWithConflict[pos].fileID]
+        let editedLabelIndex = fileTranslations ? _.findIndex(fileTranslations, (item) => { return item.key === this.edit.data }) : -1
+        fileTranslations[editedLabelIndex].value = this.translationsWithConflict[pos].valueDt
+        let promises = []
+        let path = this.translationsWithConflict[pos].path
+        // formata as labels no formato necessário para salvar o arquivo
+        promises.push(this.formatJSONToFile(path.split('.').pop(), fileTranslations)
+          .then((newFileString) => {
+            // grava os dados no arquivo
+            return this.writeFile(path, newFileString)
+          })
+          .catch((err) => {
+            return console.log(err)
+          }))
+      } else {
+        console.log('Manter o do arquivo, ou seja, editar no Banco!')
+        this.data[this.data.findIndex(el => el.name === this.edit.data)][this.edit.langTarget] = this.translationsWithConflict[pos].valueFile
+        this.$axios.put(`/translation/${this.edit.data}/${this.edit.langTarget}/${this.translationsWithConflict[pos].valueFile}`)
+          .then((response) => {
+            console.log(response)
+          })
+          .catch(() => {
+            alert('Erro ao editar tradução no banco')
+          })
+      }
+      this.translationsWithConflict.splice(pos, 1)
+      // this.radioSelected = 'dt'
+      document.getElementById(name).classList.add('hidden')
     },
     /**
      * Write the file with all labels.
@@ -859,6 +874,32 @@ export default {
 
       return languages
     },
+    /**
+     * List editable files by language
+     *
+     * @return {array} list of editable files
+    */
+    conflictFiles () {
+      let that = this
+      let conflict = []
+
+      _.each(this.translationsWithConflict, (item) => {
+        if (item.key === that.edit.data) {
+          let labelDt = {
+            key: 'dt',
+            value: item.valueDt
+          }
+          conflict.push(labelDt)
+          let labelFl = {
+            key: 'fl',
+            value: item.valueFile
+          }
+          conflict.push(labelFl)
+        }
+      })
+      return conflict
+    },
+
     /**
      * Get label that was not tranlated to all the languages.
      *
