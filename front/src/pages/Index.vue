@@ -275,9 +275,7 @@ export default {
       solveConflictDialog: false,
       file: null,
       selectedFiles: [],
-      // languages: ['Espanhol', 'Inglês', 'Português'],
-      // languages: ['pt-BR', 'en-US', 'es-CL'],
-      languages: [], // emilia
+      languages: [],
       selectedLanguages: [],
       fileLanguage: null,
       translations: [],
@@ -302,6 +300,7 @@ export default {
   },
   watch: {
     translations () {
+      console.log('chamou watch')
       this.filteredTranslations = this.groupedTranslations
       this.columns = []
       this.columns.push({ name: 'chave', required: true, label: 'Chave', align: 'left', field: row => row.name, format: val => `${val}`, sortable: true })
@@ -329,6 +328,7 @@ export default {
      * @return {object} grouped translation objects
      */
     groupedTranslations () {
+      console.log('chamou groupedTranslations')
       return _.map(_.groupBy(this.translations, 'key'), (value, key) => {
         return { key: key, lang: _.groupBy(value, 'language') }
       })
@@ -447,16 +447,28 @@ export default {
           if (this.file[0].name.endsWith('.json')) {
             // Parse JSON file and create a translation object
             _.each(JSON.parse(e.target.result), (value, key) => {
-              let group = key
-              _.each(value, (value, key) => {
-                this.translations.push({
+              let pos = this.translations.findIndex(item => item.key === key && item.language === that.fileLanguage && item.value !== value)
+              if (pos >= 0) {
+                let labelWithConflict = {
                   fileID: fileId,
-                  group: group,
                   key: key,
-                  value: value,
-                  language: that.fileLanguage
-                })
+                  valueFile: value,
+                  valueDt: this.translations[pos].value,
+                  language: that.fileLanguage,
+                  path: this.file[0].path
+                }
+                this.translationsWithConflict.push(labelWithConflict)
+              }
+              // let group = key
+              // _.each(value, (value, key) => {
+              this.translations.push({
+                fileID: fileId,
+                // group: group,
+                key: key,
+                value: value,
+                language: that.fileLanguage
               })
+              // })
             })
           } else if (this.file[0].name.endsWith('.resx')) {
             // Parse RESX file and create a translation object
@@ -501,13 +513,12 @@ export default {
     addToDataBase (chave, data, language) {
       // Grava no banco
       let name = 'toDataBase' + chave + language
-      console.log(name)
+      // console.log(name)
       this.$axios.get(`/translation/${chave}`)
         .then((response) => {
           this.$axios.put(`/translation/${chave}/${language}/${data}`)
             .then((response) => {
               console.log(response)
-              // emilia depois de inserir tirar o botão de inserir no banco, porque já inseriu
               document.getElementById(name).classList.add('hidden')
             })
             .catch(() => {
@@ -518,7 +529,16 @@ export default {
           this.$axios.post('/translation', { '_id': chave, 'translations': [ { 'language': language, 'value': data } ] })
             .then((response) => {
               console.log('inseriu nova traducao')
-              // emilia depois de inserir tirar o botão de inserir no banco
+              let newTranslation
+              newTranslation = {
+                fileID: undefined,
+                // group: this.edit.data,
+                key: chave,
+                value: data,
+                language: language
+              }
+              this.translations.push(newTranslation)
+
               document.getElementById(name).classList.add('hidden')
             })
             .catch(() => {
@@ -616,14 +636,14 @@ export default {
             alert('Já existe este código')
           })
           .catch(() => {
-            console.log('não encontrou no banco')
+            // console.log('não encontrou no banco')
             let teste = {
               '_id': ch,
               'translations': dbLg
             }
             this.$axios.post('/translation', teste)
               .then((response) => {
-                console.log('inseriu nova traducao')
+                // console.log('inseriu nova traducao')
                 dbLg.forEach(function (item) {
                   let label = {
                     fileID: undefined,
@@ -676,13 +696,14 @@ export default {
       // this.edit.text = data
     },
     saveEdition () {
+      console.log('saveEdition')
       this.data[this.data.findIndex(el => el.name === this.edit.data)][this.edit.langTarget] = this.edit.text
 
       let translations = _.groupBy(this.translations, 'fileID')
       let promises = []
       Loading.show()
 
-      console.log(this.selectedFiles)
+      // console.log(this.selectedFiles)
       // Update all selected files
       _.each(_.groupBy(this.selectedFiles, 'selected')['true'], (file) => {
         if (file.id) {
@@ -692,6 +713,7 @@ export default {
 
           // if already exist the key in the file just change the value else create a translate object
           if (editedLabelIndex >= 0) {
+            console.log('editedLabelIndex >= 0')
             fileTranslations[editedLabelIndex].value = this.edit.text
           } else {
             newTranslation = {
@@ -701,7 +723,7 @@ export default {
               value: this.edit.text,
               language: this.edit.langTarget
             }
-
+            console.log('this.translations.push')
             fileTranslations.push(newTranslation)
             this.translations.push(newTranslation)
           }
@@ -716,12 +738,15 @@ export default {
             }))
         } else {
           // Grava no banco
-          console.log('banco')
+          // console.log('banco')
           this.$axios.get(`/translation/${this.edit.data}`)
             .then((response) => {
               this.$axios.put(`/translation/${this.edit.data}/${this.edit.langTarget}/${this.edit.text}`)
                 .then((response) => {
                   console.log(response)
+                  let pos = this.translations.findIndex(el => el.key === this.edit.data && el.language === this.edit.langTarget)
+                  this.translations[pos].value = this.edit.text
+                  console.log(pos)
                 })
                 .catch(() => {
                   alert('Erro ao editar tradução no banco')
@@ -731,6 +756,16 @@ export default {
               this.$axios.post('/translation', { '_id': this.edit.data, 'translations': [ { 'language': this.edit.langTarget, 'value': this.edit.text } ] })
                 .then((response) => {
                   console.log('inseriu nova traducao')
+                  let newTranslation // emilia coloquei agora para atualizar os incompletos
+                  newTranslation = {
+                    fileID: undefined,
+                    // group: this.edit.data,
+                    key: this.edit.data,
+                    value: this.edit.text,
+                    language: this.edit.langTarget
+                  }
+                  console.log('no banco this.translations.push')
+                  this.translations.push(newTranslation)
                 })
                 .catch(() => {
                   alert('Erro ao inserir nova traducao no banco')
@@ -754,7 +789,7 @@ export default {
       let name = 'solveConflict' + this.edit.data + this.edit.langTarget
       let pos = this.translationsWithConflict.findIndex(el => el.key === this.edit.data)
       if (this.radioSelected === 'dt') {
-        console.log('Manter o do banco, ou seja, editar no Arquivo!')
+        // console.log('Manter o do banco, ou seja, editar no Arquivo!')
         this.data[this.data.findIndex(el => el.name === this.edit.data)][this.edit.langTarget] = this.translationsWithConflict[pos].valueDt
         let translations = _.groupBy(this.translations, 'fileID')
         let fileTranslations = translations[this.translationsWithConflict[pos].fileID]
@@ -772,7 +807,7 @@ export default {
             return console.log(err)
           }))
       } else {
-        console.log('Manter o do arquivo, ou seja, editar no Banco!')
+        // console.log('Manter o do arquivo, ou seja, editar no Banco!')
         this.data[this.data.findIndex(el => el.name === this.edit.data)][this.edit.langTarget] = this.translationsWithConflict[pos].valueFile
         this.$axios.put(`/translation/${this.edit.data}/${this.edit.langTarget}/${this.translationsWithConflict[pos].valueFile}`)
           .then((response) => {
@@ -841,14 +876,15 @@ export default {
       let jsonFile = {}
 
       _.each(jsonObject, (item) => {
-        if (!jsonFile[item.group]) jsonFile[item.group] = {} // create a new group if it wasn't created yet
-        jsonFile[item.group][item.key] = item.value // emilia para que ter grupo ???
+        // if (!jsonFile[item.group]) jsonFile[item.group] = {} // create a new group if it wasn't created yet
+        // jsonFile[item.group][item.key] = item.value // emilia para que ter grupo ???
+        jsonFile[item.key] = item.value
       })
 
       // order labels by group
-      _.each(jsonFile, (value, key) => {
+      /* _.each(jsonFile, (value, key) => {
         jsonFile[key] = _.sortKeysBy(value)
-      })
+      }) */
 
       // return json object idented with 4 spaces
       return Promise.resolve(JSON.stringify(jsonFile, null, '    '))
@@ -908,10 +944,13 @@ export default {
     filterIncomplete () {
       let filteredTranslations = []
       _.each(this.groupedTranslations, (translation) => {
+      // _.each(this.data, (translation) => {
         let incomplete = false
         _.each(this.selectedLanguages, (lang) => {
+          // console.log(translation)
           if (!translation.lang[lang]) {
             incomplete = true
+            console.log(lang)
           }
         })
         if (incomplete) {
