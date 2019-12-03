@@ -300,7 +300,6 @@ export default {
   },
   watch: {
     translations () {
-      console.log('chamou watch')
       this.filteredTranslations = this.groupedTranslations
       this.columns = []
       this.columns.push({ name: 'chave', required: true, label: 'Chave', align: 'left', field: row => row.name, format: val => `${val}`, sortable: true })
@@ -328,7 +327,6 @@ export default {
      * @return {object} grouped translation objects
      */
     groupedTranslations () {
-      console.log('chamou groupedTranslations')
       return _.map(_.groupBy(this.translations, 'key'), (value, key) => {
         return { key: key, lang: _.groupBy(value, 'language') }
       })
@@ -396,7 +394,8 @@ export default {
               trns.push({
                 key: item._id,
                 value: trans.value,
-                language: trans.language
+                language: trans.language,
+                inDataBase: true
               })
             })
           })
@@ -466,7 +465,8 @@ export default {
                 // group: group,
                 key: key,
                 value: value,
-                language: that.fileLanguage
+                language: that.fileLanguage,
+                inDataBase: false
               })
               // })
             })
@@ -497,7 +497,8 @@ export default {
                     group: key,
                     key: key,
                     value: value,
-                    language: that.fileLanguage
+                    language: that.fileLanguage,
+                    inDataBase: false
                   })
                 })
               }
@@ -513,13 +514,27 @@ export default {
     addToDataBase (chave, data, language) {
       // Grava no banco
       let name = 'toDataBase' + chave + language
-      // console.log(name)
       this.$axios.get(`/translation/${chave}`)
         .then((response) => {
           this.$axios.put(`/translation/${chave}/${language}/${data}`)
             .then((response) => {
               console.log(response)
               document.getElementById(name).classList.add('hidden')
+              let pos = this.translations.findIndex(el => el.key === chave && el.language === language)
+              if (pos >= 0) {
+                this.translations[pos].inDataBase = true
+              } else {
+                let newTranslation
+                newTranslation = {
+                  fileID: undefined,
+                  // group: this.edit.data,
+                  key: this.edit.data,
+                  value: this.edit.text,
+                  language: this.edit.langTarget,
+                  inDataBase: true
+                }
+                this.translations.push(newTranslation)
+              }
             })
             .catch(() => {
               alert('Erro ao editar tradução no banco')
@@ -535,7 +550,8 @@ export default {
                 // group: this.edit.data,
                 key: chave,
                 value: data,
-                language: language
+                language: language,
+                inDataBase: true
               }
               this.translations.push(newTranslation)
 
@@ -547,7 +563,7 @@ export default {
         })
     },
     alreadyInDataBase (chave, language) {
-      return !!_.find(this.translations, (item) => item.key === chave && item.language === language && !item.fileID)
+      return !!_.find(this.translations, (item) => item.key === chave && item.language === language && item.inDataBase)
     },
     withConflict (chave, language) {
       return _.find(this.translationsWithConflict, (item) => item.key === chave && item.language === language)
@@ -603,7 +619,8 @@ export default {
               group: this.formatGroup(this.newLabel.group),
               key: this.newLabel.key,
               value: labelValue,
-              language: file.language
+              language: file.language,
+              inDataBase: false
             }
 
             // união entre as labels já existente no arquivo com as novas labels traduzidas
@@ -650,7 +667,8 @@ export default {
                     group: undefined,
                     key: ch,
                     value: item.value,
-                    language: item.language
+                    language: item.language,
+                    inDataBase: true
                   }
                   that.translations.push(label)
                 })
@@ -693,17 +711,14 @@ export default {
       this.radioSelected = 'dt'
       this.edit.data = chave
       this.edit.langTarget = language
-      // this.edit.text = data
     },
     saveEdition () {
-      console.log('saveEdition')
       this.data[this.data.findIndex(el => el.name === this.edit.data)][this.edit.langTarget] = this.edit.text
 
       let translations = _.groupBy(this.translations, 'fileID')
       let promises = []
       Loading.show()
 
-      // console.log(this.selectedFiles)
       // Update all selected files
       _.each(_.groupBy(this.selectedFiles, 'selected')['true'], (file) => {
         if (file.id) {
@@ -713,7 +728,6 @@ export default {
 
           // if already exist the key in the file just change the value else create a translate object
           if (editedLabelIndex >= 0) {
-            console.log('editedLabelIndex >= 0')
             fileTranslations[editedLabelIndex].value = this.edit.text
           } else {
             newTranslation = {
@@ -721,9 +735,9 @@ export default {
               group: this.edit.data,
               key: this.edit.data,
               value: this.edit.text,
-              language: this.edit.langTarget
+              language: this.edit.langTarget,
+              inDataBase: false
             }
-            console.log('this.translations.push')
             fileTranslations.push(newTranslation)
             this.translations.push(newTranslation)
           }
@@ -738,15 +752,27 @@ export default {
             }))
         } else {
           // Grava no banco
-          // console.log('banco')
           this.$axios.get(`/translation/${this.edit.data}`)
             .then((response) => {
               this.$axios.put(`/translation/${this.edit.data}/${this.edit.langTarget}/${this.edit.text}`)
                 .then((response) => {
                   console.log(response)
                   let pos = this.translations.findIndex(el => el.key === this.edit.data && el.language === this.edit.langTarget)
-                  this.translations[pos].value = this.edit.text
-                  console.log(pos)
+                  if (pos >= 0) {
+                    this.translations[pos].value = this.edit.text
+                    this.translations[pos].inDataBase = true
+                  } else {
+                    let newTranslation
+                    newTranslation = {
+                      fileID: undefined,
+                      // group: this.edit.data,
+                      key: this.edit.data,
+                      value: this.edit.text,
+                      language: this.edit.langTarget,
+                      inDataBase: true
+                    }
+                    this.translations.push(newTranslation)
+                  }
                 })
                 .catch(() => {
                   alert('Erro ao editar tradução no banco')
@@ -762,9 +788,9 @@ export default {
                     // group: this.edit.data,
                     key: this.edit.data,
                     value: this.edit.text,
-                    language: this.edit.langTarget
+                    language: this.edit.langTarget,
+                    inDataBase: true
                   }
-                  console.log('no banco this.translations.push')
                   this.translations.push(newTranslation)
                 })
                 .catch(() => {
@@ -818,7 +844,6 @@ export default {
           })
       }
       this.translationsWithConflict.splice(pos, 1)
-      // this.radioSelected = 'dt'
       document.getElementById(name).classList.add('hidden')
     },
     /**
@@ -944,13 +969,10 @@ export default {
     filterIncomplete () {
       let filteredTranslations = []
       _.each(this.groupedTranslations, (translation) => {
-      // _.each(this.data, (translation) => {
         let incomplete = false
         _.each(this.selectedLanguages, (lang) => {
-          // console.log(translation)
           if (!translation.lang[lang]) {
             incomplete = true
-            console.log(lang)
           }
         })
         if (incomplete) {
