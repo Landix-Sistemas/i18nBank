@@ -68,27 +68,18 @@
               <div class="col-md-12">
                 <q-input v-model="newLang" float-label="Nova lingua" />
                   <q-btn color="black" class="pull-right" @click="addNewLanguage">
-                  <!-- <q-btn color="black" class="pull-right" @click="getDatabaseTranslations"> -->
                   <q-icon name="add" />
                   Add
                 </q-btn>
               </div>
               <dl class="listLangs col-md-12">
                 <dt>Linguas Adicionadas:</dt>
-                <dd v-for="lang in languages" :key="lang"> <!-- lang.value -->
-                  <!--{{lang.label}}-->
+                <dd v-for="lang in languages" :key="lang">
                   {{lang}}
                 </dd>
               </dl>
             </fieldset>
           </q-card-section>
-          <q-bar class="row bg-black text-white glossy">
-            <!--<q-space />
-            <q-btn flat @click="addFile" v-close-popup>
-              <q-icon name="check" />
-              Confirmar
-            </q-btn>-->
-          </q-bar>
         </q-card>
       </q-dialog>
       <q-dialog v-model="newTranslationDialog" persistent>
@@ -108,13 +99,6 @@
                 @input="onNewLabelFileClick(file)"
               />
             </div>
-           <!-- <div class="col-md-8 offset-2">
-              <q-select
-                v-model="newLabel.group"
-                float-label="Grupo"
-                :options="groups"
-              />
-            </div> -->
             <div class="col-md-4">
               <q-input v-model="newLabel.key" label="Chave" />
             </div>
@@ -187,18 +171,12 @@
             <div class="col-md-9">
               <q-input filled bottom-slots v-model="edit.text" label="Digite a tradução ou digite em portugues e aperte no botão para traduzir" >
                 <template v-slot:after>
-                  <!-- No sistema antigo as linguagens eram cadastradas como siglas? -->
-                  <q-btn flat icon="translate" v-if="edit.langTarget !== 'pt-BR'"> <!-- emilia verificar como edit.langTarget está sendo populado -->
+                  <q-btn flat icon="translate" v-if="edit.langTarget !== 'pt-BR'">
                     <q-tooltip anchor="bottom middle" self="top middle">Traduzir</q-tooltip>
                   </q-btn>
                 </template>
               </q-input>
             </div>
-            <!--<div class="col-md-1">
-              <q-btn color="dark" v-if="edit.langTarget !== 'pt-BR'">
-                Traduzir
-              </q-btn>
-            </div>-->
             <div class="col-md-12">
               <q-checkbox v-for="(file, index) in editableFiles()" v-model="file.selected" :label="file.name" v-bind:key="index"/>
             </div>
@@ -350,6 +328,7 @@ export default {
           alert('Erro ao selecionar linguagens')
         })
     },
+
     /**
      * Add new language to the database
      *
@@ -366,6 +345,7 @@ export default {
           alert('Erro ao cadastrar nova linguagem')
         })
     },
+
     /**
      * Load the list of registered translations
      *
@@ -406,6 +386,7 @@ export default {
           alert('Erro ao selecionar traduções')
         })
     },
+
     /**
      * Add a JSON or RESX translation file
      *
@@ -414,22 +395,17 @@ export default {
     addFile () {
       // Check if a file was seletected
       if (!this.file.length) return
-
       // Check if the file was already add
       if (_.find(this.selectedFiles, { 'path': this.file[0].path })) {
         return
       }
-
       Loading.show()
-
       let that = this
       let fileId = this.guid() // generete a new ID for the file
-
       // Add the to the list of inserted languages
       if (!_.find(this.selectedLanguages, (item) => { return item === that.fileLanguage })) {
         this.selectedLanguages.push(that.fileLanguage)
       }
-
       // Add to the list of selected files
       this.selectedFiles.push({
         id: fileId,
@@ -439,7 +415,6 @@ export default {
         selected: false
       })
       let reader = new FileReader()
-
       // On File load
       reader.onload = (e) => {
         if (e.target.result) {
@@ -458,17 +433,13 @@ export default {
                 }
                 this.translationsWithConflict.push(labelWithConflict)
               }
-              // let group = key
-              // _.each(value, (value, key) => {
               this.translations.push({
                 fileID: fileId,
-                // group: group,
                 key: key,
                 value: value,
                 language: that.fileLanguage,
                 inDataBase: false
               })
-              // })
             })
           } else if (this.file[0].name.endsWith('.resx')) {
             // Parse RESX file and create a translation object
@@ -492,8 +463,6 @@ export default {
                   }
                   this.translations.push({
                     fileID: fileId,
-                    /* group: this.UnFormatGroup(key.split('_')[0], 'resx'),
-                    key: key.split('_')[0], emilia */
                     group: key,
                     key: key,
                     value: value,
@@ -506,13 +475,18 @@ export default {
           }
         }
       }
-
       reader.onloadend = () => { Loading.hide() }
-
       reader.readAsText(this.file[0])
     },
+
+    /**
+     * Save a translation at database
+     *
+     * @param {string} chave - key.
+     * @param {string} data - data.
+     * @param {string} language - language.
+     */
     addToDataBase (chave, data, language) {
-      // Grava no banco
       let name = 'toDataBase' + chave + language
       this.$axios.get(`/translation/${chave}`)
         .then((response) => {
@@ -527,7 +501,6 @@ export default {
                 let newTranslation
                 newTranslation = {
                   fileID: undefined,
-                  // group: this.edit.data,
                   key: this.edit.data,
                   value: this.edit.text,
                   language: this.edit.langTarget,
@@ -547,7 +520,6 @@ export default {
               let newTranslation
               newTranslation = {
                 fileID: undefined,
-                // group: this.edit.data,
                 key: chave,
                 value: data,
                 language: language,
@@ -562,12 +534,29 @@ export default {
             })
         })
     },
+
+    /**
+     * Check if the translation is already in the database
+     *
+     * @param {string} chave - key.
+     * @param {string} language - language.
+     * @return true if is
+     */
     alreadyInDataBase (chave, language) {
       return !!_.find(this.translations, (item) => item.key === chave && item.language === language && item.inDataBase)
     },
+
+    /**
+     * Checks for conflict cetween file and database translation
+     *
+     * @param {string} chave - key.
+     * @param {string} language - language.
+     * @return true if is
+     */
     withConflict (chave, language) {
       return _.find(this.translationsWithConflict, (item) => item.key === chave && item.language === language)
     },
+
     /**
      * Generate a new GUID.
      *
@@ -581,58 +570,36 @@ export default {
       }
       return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4()
     },
-    formatGroup (group, fileType) {
-      if (fileType === 'resx') {
-        if (group === 'label') {
-          return 'lbl'
-        } else if (group === 'message') {
-          return 'msg'
-        }
-      } else {
-        return group
-      }
-    },
-    UnFormatGroup (group, fileType) {
-      if (fileType === 'resx') {
-        if (group === 'lbl') {
-          return 'label'
-        } else if (group === 'msg') {
-          return 'message'
-        } else {
-          return group
-        }
-      } else {
-        return group
-      }
-    },
+
+    /**
+     * Add the new label at file or database.
+     *
+     */
     addNewLabel () {
       let dbLg = []
       let that = this
       _.each(this.selectedFiles, (file) => {
         if (file.selected) {
           let labelValue = _.find(this.newLabel.labels, (item) => item.language === file.language).model
-
           if (file.id) {
-            // Grava no arquivo
+            // Save at file
             let label = {
               fileID: file.id,
-              group: this.formatGroup(this.newLabel.group),
               key: this.newLabel.key,
               value: labelValue,
               language: file.language,
               inDataBase: false
             }
-
-            // união entre as labels já existente no arquivo com as novas labels traduzidas
+            // union between existing labels in the file with the new translated labels
             let grpTrand = _.groupBy(this.translations, 'fileID')[file.id]
             grpTrand ? grpTrand.push(label) : [].push(label)
-            // formata as labels no formato necessário para salvar o arquivo
+            // formats labels in the format needed to save the file
             return this.formatJSONToFile(file.path.split('.').pop(), grpTrand)
               .then((newFileString) => {
-                // grava os dados no arquivo
+                // write data to file
                 return this.writeFile(file.path, newFileString)
                   .then(() => {
-                    // Atualiza a lista de traduções
+                    // Update the list of translations.
                     this.translations.push(label)
                     return true
                   })
@@ -641,7 +608,7 @@ export default {
                 return console.log('err')
               })
           } else {
-          // Grava no banco
+          // Save at database
             dbLg.push({ 'language': file.language, 'value': labelValue })
           }
         }
@@ -653,14 +620,12 @@ export default {
             alert('Já existe este código')
           })
           .catch(() => {
-            // console.log('não encontrou no banco')
             let teste = {
               '_id': ch,
               'translations': dbLg
             }
             this.$axios.post('/translation', teste)
               .then((response) => {
-                // console.log('inseriu nova traducao')
                 dbLg.forEach(function (item) {
                   let label = {
                     fileID: undefined,
@@ -687,6 +652,12 @@ export default {
         return file
       })
     },
+
+    /**
+     * Add or remove field for typing new label
+     *
+     * @param {object} file - the option checked or unchecked.
+     */
     onNewLabelFileClick (file) {
       if (file.selected) {
         if (!_.find(this.newLabel.labels, (item) => item.language === file.language)) {
@@ -702,30 +673,47 @@ export default {
         }
       }
     },
+
+    /**
+     * Assign current values to edit
+     *
+     * @param {string} chave - key.
+     * @param {string} data - data.
+     * @param {string} language - language.
+     */
     editTranslation (chave, data, language) {
       this.edit.data = chave
       this.edit.langTarget = language
       this.edit.text = data
     },
+
+    /**
+     * Assign current values to edit and radio
+     *
+     * @param {string} chave - key.
+     * @param {string} data - data.
+     * @param {string} language - language.
+     */
     solveConflict (chave, data, language) {
       this.radioSelected = 'dt'
       this.edit.data = chave
       this.edit.langTarget = language
     },
+    /**
+     * Save value
+     *
+     */
     saveEdition () {
       this.data[this.data.findIndex(el => el.name === this.edit.data)][this.edit.langTarget] = this.edit.text
-
       let translations = _.groupBy(this.translations, 'fileID')
       let promises = []
       Loading.show()
-
       // Update all selected files
       _.each(_.groupBy(this.selectedFiles, 'selected')['true'], (file) => {
         if (file.id) {
           let fileTranslations = translations[file.id]
           let editedLabelIndex = fileTranslations ? _.findIndex(fileTranslations, (item) => { return item.key === this.edit.data }) : -1
           let newTranslation
-
           // if already exist the key in the file just change the value else create a translate object
           if (editedLabelIndex >= 0) {
             fileTranslations[editedLabelIndex].value = this.edit.text
@@ -741,17 +729,17 @@ export default {
             fileTranslations.push(newTranslation)
             this.translations.push(newTranslation)
           }
-          // formata as labels no formato necessário para salvar o arquivo
+          // formats labels in the format needed to save the file
           promises.push(this.formatJSONToFile(file.path.split('.').pop(), fileTranslations)
             .then((newFileString) => {
-              // grava os dados no arquivo
+              // write data to file
               return this.writeFile(file.path, newFileString)
             })
             .catch((err) => {
               return console.log(err)
             }))
         } else {
-          // Grava no banco
+          // Save at database
           this.$axios.get(`/translation/${this.edit.data}`)
             .then((response) => {
               this.$axios.put(`/translation/${this.edit.data}/${this.edit.langTarget}/${this.edit.text}`)
@@ -765,7 +753,6 @@ export default {
                     let newTranslation
                     newTranslation = {
                       fileID: undefined,
-                      // group: this.edit.data,
                       key: this.edit.data,
                       value: this.edit.text,
                       language: this.edit.langTarget,
@@ -782,10 +769,9 @@ export default {
               this.$axios.post('/translation', { '_id': this.edit.data, 'translations': [ { 'language': this.edit.langTarget, 'value': this.edit.text } ] })
                 .then((response) => {
                   console.log('inseriu nova traducao')
-                  let newTranslation // emilia coloquei agora para atualizar os incompletos
+                  let newTranslation
                   newTranslation = {
                     fileID: undefined,
-                    // group: this.edit.data,
                     key: this.edit.data,
                     value: this.edit.text,
                     language: this.edit.langTarget,
@@ -799,7 +785,6 @@ export default {
             })
         }
       })
-
       Promise.all(promises).then(() => {
         // Clean the selected file list
         this.selectedFiles = _.map(this.selectedFiles, (file) => {
@@ -811,11 +796,15 @@ export default {
         return Loading.hide()
       })
     },
+
+    /**
+    * Save conflict resolution to file or database
+    *
+    */
     saveSolveConflict () {
       let name = 'solveConflict' + this.edit.data + this.edit.langTarget
       let pos = this.translationsWithConflict.findIndex(el => el.key === this.edit.data)
       if (this.radioSelected === 'dt') {
-        // console.log('Manter o do banco, ou seja, editar no Arquivo!')
         this.data[this.data.findIndex(el => el.name === this.edit.data)][this.edit.langTarget] = this.translationsWithConflict[pos].valueDt
         let translations = _.groupBy(this.translations, 'fileID')
         let fileTranslations = translations[this.translationsWithConflict[pos].fileID]
@@ -823,17 +812,16 @@ export default {
         fileTranslations[editedLabelIndex].value = this.translationsWithConflict[pos].valueDt
         let promises = []
         let path = this.translationsWithConflict[pos].path
-        // formata as labels no formato necessário para salvar o arquivo
+        // formats labels in the format needed to save the file
         promises.push(this.formatJSONToFile(path.split('.').pop(), fileTranslations)
           .then((newFileString) => {
-            // grava os dados no arquivo
+            // write data to file
             return this.writeFile(path, newFileString)
           })
           .catch((err) => {
             return console.log(err)
           }))
       } else {
-        // console.log('Manter o do arquivo, ou seja, editar no Banco!')
         this.data[this.data.findIndex(el => el.name === this.edit.data)][this.edit.langTarget] = this.translationsWithConflict[pos].valueFile
         this.$axios.put(`/translation/${this.edit.data}/${this.edit.langTarget}/${this.translationsWithConflict[pos].valueFile}`)
           .then((response) => {
@@ -846,6 +834,7 @@ export default {
       this.translationsWithConflict.splice(pos, 1)
       document.getElementById(name).classList.add('hidden')
     },
+
     /**
      * Write the file with all labels.
      *
@@ -857,6 +846,7 @@ export default {
       // eslint-disable-next-line no-undef
       return pify(getFS().writeFile)(filePath, newFileString)
     },
+
     /**
      * Transform the labels array to the format of the file.
      *
@@ -871,6 +861,7 @@ export default {
         return this.translationsToJSON(jsonObject)
       }
     },
+
     /**
      * Transform the labels array to the format of resx file.
      *
@@ -881,13 +872,10 @@ export default {
       let jsonFile = {}
 
       _.each(jsonObject, (item) => {
-        // jsonFile[item.group + '_' + item.key] = item.value // emilia para que ter grupo ???
         jsonFile[item.key] = item.value
       })
-
       // order the labels
       jsonFile = _.sortKeysBy(jsonFile)
-
       return pify(require('resx/js2resx'))(jsonFile)
     },
 
@@ -901,19 +889,12 @@ export default {
       let jsonFile = {}
 
       _.each(jsonObject, (item) => {
-        // if (!jsonFile[item.group]) jsonFile[item.group] = {} // create a new group if it wasn't created yet
-        // jsonFile[item.group][item.key] = item.value // emilia para que ter grupo ???
         jsonFile[item.key] = item.value
       })
-
-      // order labels by group
-      /* _.each(jsonFile, (value, key) => {
-        jsonFile[key] = _.sortKeysBy(value)
-      }) */
-
       // return json object idented with 4 spaces
       return Promise.resolve(JSON.stringify(jsonFile, null, '    '))
     },
+
     /**
      * List editable files by language
      *
@@ -923,18 +904,16 @@ export default {
       if (!this.edit.langTarget) {
         return this.selectedFiles
       }
-
       let that = this
       let languages = []
-
       _.each(this.selectedFiles, (item) => {
         if (item.language === that.edit.langTarget) {
           languages.push(item)
         }
       })
-
       return languages
     },
+
     /**
      * List editable files by language
      *
@@ -943,7 +922,6 @@ export default {
     conflictFiles () {
       let that = this
       let conflict = []
-
       _.each(this.translationsWithConflict, (item) => {
         if (item.key === that.edit.data) {
           let labelDt = {
@@ -982,6 +960,11 @@ export default {
       let incompletes = this.data.filter(a1 => filteredTranslations.find(a2 => a2.key === a1.name))
       this.data = incompletes
     },
+    /**
+     * Get label that was tranlated to all the languages.
+     *
+     * @return {void}
+     */
     filterComplete () {
       this.data = this.dataOriginal
     }
