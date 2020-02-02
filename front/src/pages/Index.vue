@@ -18,7 +18,7 @@
               <q-btn color="secondary" icon="file_upload" @click="importFilesDialog = true">Importar Arquivo</q-btn>
             </div>
             <div>
-              <q-btn color="secondary" icon="cancel" v-if="translations.length">Traduzir Incomp.</q-btn>
+              <q-btn color="secondary" icon="cancel" @click="translateIncompletes" v-if="translations.length">Traduzir Incomp.</q-btn>
             </div>
             <div class="row items-center">
               <q-btn color="secondary" icon="filter_list" @click="filterIncomplete" v-if="translations.length">Incompletos</q-btn>
@@ -171,7 +171,7 @@
             <div class="col-md-9">
               <q-input filled bottom-slots v-model="edit.text" label="Digite a tradução ou digite em portugues e aperte no botão para traduzir" >
                 <template v-slot:after>
-                  <q-btn flat icon="translate" v-if="edit.langTarget !== 'pt-BR'">
+                  <q-btn flat icon="translate" @click="translateWatson" v-if="edit.langTarget !== 'pt-BR'">
                     <q-tooltip anchor="bottom middle" self="top middle">Traduzir</q-tooltip>
                   </q-btn>
                 </template>
@@ -219,6 +219,11 @@ import {
 } from 'quasar'
 import _ from 'Lodash'
 import pify from 'pify'
+require('dotenv').config()
+import LanguageTranslatorV3 from 'ibm-watson/language-translator/v3'
+// 'use strict'
+// require('dotenv').config()
+// const LanguageTranslatorV3 = require('ibm-watson/language-translator/v3')
 // Add a new function to the  lodash
 _.mixin({
   'sortKeysBy': function (obj, comparator) {
@@ -684,7 +689,33 @@ export default {
     editTranslation (chave, data, language) {
       this.edit.data = chave
       this.edit.langTarget = language
-      this.edit.text = data
+      // this.edit.text = data
+      // If a translation for this label not exist then tranlate
+      if (data[language]) {
+        this.edit.text = data[language][0].value
+      } else {
+        let text = data['en-US'] ? data['en-US'][0].value : data[Object.keys(data)[0]][0].value
+        let langSource = data['en-US'] ? 'en-US' : data[Object.keys(data)[0]][0].language
+        let langTarget = data['en-US'] ? language : 'en-US'
+
+        Loading.show()
+
+        // Call Watson API to translate the label
+        this.translateValue(text, langSource, langTarget, language)
+          .then((translation) => {
+            this.edit.text = translation
+            return true
+          })
+          .catch(() => {
+            console.log('erro')
+            return false
+          })
+          .then(() => {
+            Loading.hide()
+            return true
+          })
+          .catch(() => null)
+      }
     },
 
     /**
@@ -960,6 +991,7 @@ export default {
       let incompletes = this.data.filter(a1 => filteredTranslations.find(a2 => a2.key === a1.name))
       this.data = incompletes
     },
+
     /**
      * Get label that was tranlated to all the languages.
      *
@@ -967,6 +999,204 @@ export default {
      */
     filterComplete () {
       this.data = this.dataOriginal
+    },
+
+    /**
+     * Translate from portugues (Brazil) to any language
+     *
+     * @return {void}
+     */
+    translateWatson () {
+      Loading.show()
+
+      this.translateValue(this.edit.text, 'pt-BR', 'en-US', this.edit.langTarget)
+        .then((translation) => {
+          this.edit.text = translation
+          return true
+        })
+        .catch(() => {
+          console.log('erro')
+          return false
+        })
+        .then(() => {
+          Loading.hide()
+          return true
+        })
+        .catch(() => null)
+    },
+
+    /**
+     * Translate a value.
+     *
+     * @param {string} text - text to tranlate.
+     * @param {string} langSource - the source language.
+     * @param {string} langTarget - the target language.
+     * @param {string} finalLang - the final language.
+     * @return {string} Translated text
+     */
+    translateValue (text, langSource, langTarget, finalLang) {
+      return this.translateNew(text, langSource, langTarget).then(response => {
+        let translation = response.data.translations[0].translation
+
+        // If the target language isn't the en-US and the final language isn't 'en-US' so need to tranlate to the final language
+        if (langSource !== 'en-US' && finalLang !== 'en-US' && langSource !== 'en' && finalLang !== 'en') {
+          return this.translateNew(translation, 'en-US', finalLang).then(response => {
+            return response.data.translations[0].translation
+          })
+        } else {
+          return translation
+        }
+      })
+    },
+
+    /**
+     * Call the API to translate some text.
+     *
+     * @param {string} text - text to tranlate.
+     * @param {string} langSource - the source language.
+     * @param {string} langTarget - the target language.
+     * @return {Promise}
+     */
+    translateNew (text, langSource, langTarget) {
+      // console.log('translateNew')
+      // return this.$http.get(`http://localhost:3100/?texto=${encodeURIComponent(text)}&source=${langSource}&target=${langTarget}`)
+      // 'use strict'
+      console.log('translateNew')
+      // require('dotenv').config()
+      // const LanguageTranslatorV3 = require('ibm-watson/language-translator/v3')
+      const languageTranslator = new LanguageTranslatorV3({
+        username: process.env.LANGUAGE_TRANSLATOR_USERNAME || '<language_translator_username>',
+        password: process.env.LANGUAGE_TRANSLATOR_PASSWORD || '<language_translator_password>',
+        version: '2019-01-10'
+      })
+      console.log('languageTranslator.translate')
+      languageTranslator.translate(
+        {
+          text: 'A sentença tem que ter um verbo',
+          source: 'pt',
+          target: 'en-US'
+        }).then(response => {
+        console.log(JSON.stringify(response.result.translations[0].translation, null, 2))
+        return JSON.stringify(response.result.translations[0].translation, null, 2)
+      }).catch(err => {
+        console.log('error: ', err)
+        return 'error'
+      })
+    },
+
+    /**
+     * Translate a list of labels.
+     *
+     * @param {array} toTranslate - List of labels (incompletes) to translate
+     * @return {array} List of transleted labels
+     */
+    getLabelTranslated (toTranslate) {
+      let promises = []
+
+      // For each item to be translated
+      _.each(toTranslate, (item) => {
+        // Translate for each language
+        _.each(this.selectedLanguages, (lang) => {
+          // Check if some language was not transleted yet
+          if (!item.lang[lang]) {
+            // Watson can translate any language to english and english to any language, so if the target is not english and the source is not english then translate to english first
+            let text = item.lang['en-US'] ? item.lang['en-US'][0].value : item.lang[Object.keys(item.lang)[0]][0].value
+            let langSource = item.lang['en-US'] ? 'en-US' : item.lang[Object.keys(item.lang)[0]][0].language
+            let langTarget = item.lang['en-US'] ? lang : 'en-US'
+
+            // Add all tradutions to a list o promises
+            promises.push(this.translateValue(text, langSource, langTarget, lang)
+              .then((translation) => {
+                return {
+                  fileID: _.find(this.selectedFiles, item => { return item.language === lang }).id,
+                  group: item.lang[Object.keys(item.lang)[0]][0].group,
+                  key: item.key,
+                  value: translation,
+                  language: lang
+                }
+              }))
+          }
+        })
+      })
+
+      // Resolve all promises and return their results as a array
+      return Promise.all(promises)
+    },
+
+    /**
+     * Translate all incompletes labels.
+     *
+     * @return {void}
+     */
+    translateIncompletes () {
+      Loading.show()
+      // Busca as traduções para os arquivos incompletos
+      this.getLabelTranslated(this.getIncompleteTranlations())
+        .then((translated) => {
+          let groupedTranslated = _.groupBy(translated, 'fileID') // agrupa as traduções por arquivo
+
+          // salva cada arquivo que teve uma label traduzida
+          _.each(groupedTranslated, (value, key) => {
+            // união entre as labels já existente no arquivo com as novas labels traduzidas
+            let grpTrans = _.groupBy(this.translations, 'fileID')[key]
+            let fileLabels = grpTrans ? _.concat(grpTrans, value) : value
+
+            // busca as informações do arquivo que será alterado
+            let file = _.find(this.selectedFiles, (item) => { return item.id === key })
+
+            if (file) {
+              // formata as labels no formato necessário para salvar o arquivo
+              return this.formatJSONToFile(file.path.split('.').pop(), fileLabels)
+                .then((newFileString) => {
+                  // grava os dados no arquivo
+                  return this.writeFile(file.path, newFileString)
+                    .then(() => {
+                      // Atualiza a lista de traduções
+                      _.each(value, (item) => {
+                        this.translations.push(item)
+                      })
+                      return true
+                    })
+                    .catch(() => {
+                      return console.log('err')
+                    })
+                })
+                .catch(() => {
+                  return console.log('err')
+                })
+            } else {
+              _.each(value, (item) => {
+                // Grava no banco
+                let lang = this.$gun.get(`language/${item.language}`)
+                let group = this.$gun.get(`group/${item.group}`)
+
+                let translationDB = this.$gun.get(`translation/${item.key}-${item.language}`)
+
+                translationDB.path('key').put(item.key)
+                translationDB.path('value').put(item.value)
+                translationDB.path('language').put(lang)
+                translationDB.path('group').put(group)
+
+                this.$gun.get(`translations`).set(translationDB)
+
+                this.translations.push({
+                  group: item.group,
+                  key: item.key,
+                  value: item.value,
+                  language: item.language
+                })
+              })
+            }
+          })
+          return true
+        })
+        .then(() => {
+          return Loading.hide()
+        })
+        .catch(() => {
+          Loading.hide()
+          return console.log('error')
+        })
     }
   }
 }
