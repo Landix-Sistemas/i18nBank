@@ -63,6 +63,7 @@ if (cluster.isWorker) {
       .setVersion('1.0')
       .addTag('language')
       .addTag('translation')
+      .addTag('watson')
       .build();
 
     const swaggerOptions = {
