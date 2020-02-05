@@ -1,6 +1,6 @@
 # I18N Bank and Manager
 
-> This project provide a way to store yours translations and manage json and resx files. This project use <a href="http://gun.js.org/"> GunDB </a> to store the tranlations and Watson from IBM to help with the translations.
+> This project provide a way to store yours translations and manage json and resx files. This project use <a href="https://couchdb.apache.org/"> CouchDB </a> to store the translations and Watson from IBM to help with the translations.
 
 ## Watson Configuration
 Update the file in back/index.js and put your translation bluemix username and password
@@ -17,7 +17,7 @@ Update the file in back/index.js and put your translation bluemix username and p
 # install dependencies
 $ npm install
 
-# serve with hot reload at localhost:8080, electron, gundb and watson
+# serve with hot reload at localhost:8080, electron, couchdb and watson
 $ npm start
 
 # build for production with minification
