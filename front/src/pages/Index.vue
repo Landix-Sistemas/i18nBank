@@ -219,11 +219,6 @@ import {
 } from 'quasar'
 import _ from 'Lodash'
 import pify from 'pify'
-require('dotenv').config()
-import LanguageTranslatorV3 from 'ibm-watson/language-translator/v3'
-// 'use strict'
-// require('dotenv').config()
-// const LanguageTranslatorV3 = require('ibm-watson/language-translator/v3')
 // Add a new function to the  lodash
 _.mixin({
   'sortKeysBy': function (obj, comparator) {
@@ -689,17 +684,47 @@ export default {
     editTranslation (chave, data, language) {
       this.edit.data = chave
       this.edit.langTarget = language
-      // this.edit.text = data
-      // If a translation for this label not exist then tranlate
-      if (data[language]) {
-        this.edit.text = data[language][0].value
+      this.translateValue('oi', 'pt-BR', 'en-US', 'en-US')
+        .then((translation) => {
+          this.edit.text = translation
+          return true
+        })
+        .catch(() => {
+          console.log('erro editTranslation 2')
+          return false
+        })
+        .then(() => {
+          Loading.hide()
+          return true
+        })
+        .catch(() => null)
+
+      /* let pos = this.translations.findIndex(el => el.key === this.edit.data && el.language === this.edit.langTarget)
+      if (pos >= 0) {
+        this.edit.text = this.translations[pos].value
       } else {
-        let text = data['en-US'] ? data['en-US'][0].value : data[Object.keys(data)[0]][0].value
-        let langSource = data['en-US'] ? 'en-US' : data[Object.keys(data)[0]][0].language
-        let langTarget = data['en-US'] ? language : 'en-US'
+        console.log(this.translations)
+        console.log(this.data)
+      } */
+      // If a translation for this label not exist then translate
+      let pos = this.data.findIndex(el => el.name === chave)
+      console.log(this.data)
+      console.log(this.data[pos])
+      if (this.data[pos][language]) {
+        this.edit.text = data[pos][language][0].value
+      } else {
+        let text = data[pos]['en-US'] ? data[pos]['en-US'][0].value : data[pos][Object.keys(data)[0]][0].value
+        let langSource = data[pos]['en-US'] ? 'en-US' : data[pos][Object.keys(data)[0]][0].language
+        let langTarget = data[pos]['en-US'] ? language : 'en-US'
 
         Loading.show()
-
+        console.log('editTranslation')
+        console.log(chave)
+        console.log(data)
+        console.log(language)
+        console.log(text)
+        console.log(langSource)
+        console.log(langTarget)
         // Call Watson API to translate the label
         this.translateValue(text, langSource, langTarget, language)
           .then((translation) => {
@@ -716,6 +741,39 @@ export default {
           })
           .catch(() => null)
       }
+      // this.edit.text = data
+      // If a translation for this label not exist then translate
+      /* if (data[language]) {
+        this.edit.text = data[language][0].value
+      } else {
+        let text = data['en-US'] ? data['en-US'][0].value : data[Object.keys(data)[0]][0].value
+        let langSource = data['en-US'] ? 'en-US' : data[Object.keys(data)[0]][0].language
+        let langTarget = data['en-US'] ? language : 'en-US'
+
+        Loading.show()
+        console.log('editTranslation')
+        console.log(chave)
+        console.log(data)
+        console.log(language)
+        console.log(text)
+        console.log(langSource)
+        console.log(langTarget)
+        // Call Watson API to translate the label
+        this.translateValue(text, langSource, langTarget, language)
+          .then((translation) => {
+            this.edit.text = translation
+            return true
+          })
+          .catch(() => {
+            console.log('erro')
+            return false
+          })
+          .then(() => {
+            Loading.hide()
+            return true
+          })
+          .catch(() => null)
+      } */
     },
 
     /**
@@ -1015,7 +1073,7 @@ export default {
           return true
         })
         .catch(() => {
-          console.log('erro')
+          console.log('erro translateWatson 1')
           return false
         })
         .then(() => {
@@ -1036,12 +1094,12 @@ export default {
      */
     translateValue (text, langSource, langTarget, finalLang) {
       return this.translateNew(text, langSource, langTarget).then(response => {
-        let translation = response.data.translations[0].translation
+        let translation = response.data
 
-        // If the target language isn't the en-US and the final language isn't 'en-US' so need to tranlate to the final language
+        // If the target language isn't the en-US and the final language isn't 'en-US' so need to translate to the final language
         if (langSource !== 'en-US' && finalLang !== 'en-US' && langSource !== 'en' && finalLang !== 'en') {
           return this.translateNew(translation, 'en-US', finalLang).then(response => {
-            return response.data.translations[0].translation
+            return response.data
           })
         } else {
           return translation
@@ -1058,30 +1116,7 @@ export default {
      * @return {Promise}
      */
     translateNew (text, langSource, langTarget) {
-      // console.log('translateNew')
-      // return this.$http.get(`http://localhost:3100/?texto=${encodeURIComponent(text)}&source=${langSource}&target=${langTarget}`)
-      // 'use strict'
-      console.log('translateNew')
-      // require('dotenv').config()
-      // const LanguageTranslatorV3 = require('ibm-watson/language-translator/v3')
-      const languageTranslator = new LanguageTranslatorV3({
-        username: process.env.LANGUAGE_TRANSLATOR_USERNAME || '<language_translator_username>',
-        password: process.env.LANGUAGE_TRANSLATOR_PASSWORD || '<language_translator_password>',
-        version: '2019-01-10'
-      })
-      console.log('languageTranslator.translate')
-      languageTranslator.translate(
-        {
-          text: 'A sentença tem que ter um verbo',
-          source: 'pt',
-          target: 'en-US'
-        }).then(response => {
-        console.log(JSON.stringify(response.result.translations[0].translation, null, 2))
-        return JSON.stringify(response.result.translations[0].translation, null, 2)
-      }).catch(err => {
-        console.log('error: ', err)
-        return 'error'
-      })
+      return this.$axios.get(`/watson/${text}/${langSource}/${langTarget}`)
     },
 
     /**
@@ -1109,7 +1144,7 @@ export default {
               .then((translation) => {
                 return {
                   fileID: _.find(this.selectedFiles, item => { return item.language === lang }).id,
-                  group: item.lang[Object.keys(item.lang)[0]][0].group,
+                  // group: item.lang[Object.keys(item.lang)[0]][0].group,
                   key: item.key,
                   value: translation,
                   language: lang
@@ -1164,7 +1199,7 @@ export default {
                 .catch(() => {
                   return console.log('err')
                 })
-            } else {
+            } /* else {   // emilia gravar no banco CouchDB
               _.each(value, (item) => {
                 // Grava no banco
                 let lang = this.$gun.get(`language/${item.language}`)
@@ -1186,7 +1221,7 @@ export default {
                   language: item.language
                 })
               })
-            }
+            } */
           })
           return true
         })
