@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { WatsonService } from './watson.service';
+import { WatsonDto } from './watson.dto';
 
 /**
  * Classes that represent a Watson controller.
@@ -29,7 +30,7 @@ export class WatsonController {
    * @returns {Promise<string>} Promise object represents the translation.
    */
   @Get(':text/:source/:target')
-  @ApiOperation({ title: 'Translate to a specific language' })
+  @ApiOperation({ title: 'Translate to a specific language. One of the languages must to be English' })
   async translate(@Param('text') text: string, @Param('source') source: string, @Param('target') target: string): Promise<string> {
     const watson = this.watsonService.translate(text, source, target);
 
