@@ -22,7 +22,7 @@ export class WatsonService {
   }*/
 
   /**
-   * Translate a text from source to target language. One of the languages must to be English
+   * Translate a text from source to target language. One of the languages MUST be English
    * @param {string} text The text.
    * @param {string} source The source language.
    * @param {string} target The target language.
