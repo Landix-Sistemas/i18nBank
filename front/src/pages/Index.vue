@@ -22,7 +22,8 @@
             </div>
             <div class="row items-center">
               <q-btn color="secondary" icon="filter_list" @click="filterIncomplete" v-if="translations.length">Incompletos</q-btn>
-              <q-btn color="secondary" icon="filter_list" @click="filterComplete" v-if="translations.length">Todos</q-btn>
+              <!--<q-btn color="secondary" icon="filter_list" @click="filterComplete" v-if="translations.length">Todos</q-btn>-->
+              <q-btn color="secondary" icon="filter_list" @click="filterAll" v-if="translations.length">Todos</q-btn>
               <q-input borderless dense debounce="300" v-model="filter" placeholder="Buscar" v-if="translations.length">
                 <template v-slot:prepend>
                   <q-icon name="search" />
@@ -684,7 +685,8 @@ export default {
     editTranslation (chave, data, language) {
       this.edit.data = chave
       this.edit.langTarget = language
-      this.translateValue('oi', 'pt-BR', 'en-US', 'en-US')
+      this.edit.text = data
+      /* this.translateValue('oi', 'pt-BR', 'en-US', 'en-US')
         .then((translation) => {
           this.edit.text = translation
           return true
@@ -697,7 +699,7 @@ export default {
           Loading.hide()
           return true
         })
-        .catch(() => null)
+        .catch(() => null) */
 
       /* let pos = this.translations.findIndex(el => el.key === this.edit.data && el.language === this.edit.langTarget)
       if (pos >= 0) {
@@ -707,26 +709,48 @@ export default {
         console.log(this.data)
       } */
       // If a translation for this label not exist then translate
-      let pos = this.data.findIndex(el => el.name === chave)
-      console.log(this.data)
-      console.log(this.data[pos])
-      if (this.data[pos][language]) {
-        this.edit.text = data[pos][language][0].value
+      // let pos = this.data.findIndex(el => el.name === chave)
+      // console.log(this.data)
+      // console.log(this.data[pos])
+      // console.log(this.data[pos]['en-US'])
+      // console.log(this.data[pos].language)
+      // console.log(this.data[pos]['es-CL'])
+      // console.log(language)
+      // console.log('\'' + language + '\'')
+      // console.log(`${language}`)
+      // let pos = this.data.findIndex(el => el.name === this.edit.data)
+      // console.log(this.data[this.data.findIndex(el => el.name === this.edit.data)][this.edit.langTarget])
+      // console.log(this.data[pos][this.edit.langTarget])
+      // console.log(this.data[pos]['\'' + language + '\''])
+      // console.log(this.data[pos][this.edit.langTarget].value)
+      // if (this.data[pos]['\'' + language + '\''] !== '-') {
+      /* if (String(this.data[pos][this.edit.langTarget]) !== '-') {
+        this.edit.text = String(this.data[pos][this.edit.langTarget])
+        console.log('diferente de - ')
       } else {
-        let text = data[pos]['en-US'] ? data[pos]['en-US'][0].value : data[pos][Object.keys(data)[0]][0].value
-        let langSource = data[pos]['en-US'] ? 'en-US' : data[pos][Object.keys(data)[0]][0].language
-        let langTarget = data[pos]['en-US'] ? language : 'en-US'
+        console.log('igual - ')
+        // let text = data[pos]['en-US'] ? data[pos]['en-US'][0].value : data[pos][Object.keys(data)[0]][0].value
+        console.log(this.data[pos]['en-US'])
+        let text = this.data[pos][this.edit.langTarget]
+        if (String(this.data[pos]['en-US']) !== '-') {
+          text = this.data[pos][this.edit.langTarget]
+        } */ /* else {
 
-        Loading.show()
-        console.log('editTranslation')
-        console.log(chave)
-        console.log(data)
-        console.log(language)
-        console.log(text)
-        console.log(langSource)
-        console.log(langTarget)
-        // Call Watson API to translate the label
-        this.translateValue(text, langSource, langTarget, language)
+        } */
+      // let text = this.data[pos]['en-US'] ? this.data[pos]['en-US'] : this.data[pos][this.edit.langTarget]
+      // let langSource = data[pos]['en-US'] ? 'en-US' : data[pos][Object.keys(data)[0]][0].language
+      // let langTarget = data[pos]['en-US'] ? language : 'en-US'
+
+      // Loading.show()
+      // console.log('editTranslation')
+      // console.log(chave)
+      // console.log(data)
+      // console.log(language)
+      // console.log(text)
+      // console.log(langSource)
+      // console.log(langTarget)
+      // Call Watson API to translate the label
+      /* this.translateValue(text, langSource, langTarget, language)
           .then((translation) => {
             this.edit.text = translation
             return true
@@ -739,8 +763,8 @@ export default {
             Loading.hide()
             return true
           })
-          .catch(() => null)
-      }
+          .catch(() => null) */
+      // }
       // this.edit.text = data
       // If a translation for this label not exist then translate
       /* if (data[language]) {
@@ -1031,9 +1055,41 @@ export default {
     /**
      * Get label that was not tranlated to all the languages.
      *
+     * @return {array} List of incompleted labels.
+     */
+    getIncompleteTranlations () {
+      let filteredTranslations = []
+
+      _.each(this.groupedTranslations, (translation) => {
+        let incomplete = false
+        _.each(this.selectedLanguages, (lang) => {
+          if (!translation.lang[lang]) {
+            incomplete = true
+          }
+        })
+        if (incomplete) {
+          filteredTranslations.push(translation)
+        }
+      })
+
+      return filteredTranslations
+    },
+
+    /**
+     * Get label that was not tranlated to all the languages.
+     *
      * @return {void}
      */
     filterIncomplete () {
+      this.filteredTranslations = Object.assign({}, this.getIncompleteTranlations())
+    },
+
+    /**
+     * Get label that was not tranlated to all the languages.
+     *
+     * @return {void}
+     */
+    /* filterIncomplete () {
       let filteredTranslations = []
       _.each(this.groupedTranslations, (translation) => {
         let incomplete = false
@@ -1048,6 +1104,15 @@ export default {
       })
       let incompletes = this.data.filter(a1 => filteredTranslations.find(a2 => a2.key === a1.name))
       this.data = incompletes
+    }, */
+
+    /**
+     * Clear all filters.
+     *
+     * @return {void}
+     */
+    filterAll () {
+      this.filteredTranslations = this.groupedTranslations
     },
 
     /**
@@ -1055,9 +1120,9 @@ export default {
      *
      * @return {void}
      */
-    filterComplete () {
+    /* filterComplete () {
       this.data = this.dataOriginal
-    },
+    }, */
 
     /**
      * Translate from portugues (Brazil) to any language
