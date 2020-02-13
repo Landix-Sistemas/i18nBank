@@ -1081,7 +1081,13 @@ export default {
      * @return {void}
      */
     filterIncomplete () {
-      this.filteredTranslations = Object.assign({}, this.getIncompleteTranlations())
+      let filteredTranslations = []
+      filteredTranslations = this.getIncompleteTranlations()
+      // this.filteredTranslations = Object.assign({}, this.getIncompleteTranlations())
+      this.filteredTranslations = Object.assign({}, filteredTranslations)
+      // let incompletes = this.data.filter(a1 => this.filteredTranslations.find(a2 => a2.key === a1.name))
+      let incompletes = this.data.filter(a1 => filteredTranslations.find(a2 => a2.key === a1.name))
+      this.data = incompletes
     },
 
     /**
@@ -1112,7 +1118,8 @@ export default {
      * @return {void}
      */
     filterAll () {
-      this.filteredTranslations = this.groupedTranslations
+      // this.filteredTranslations = this.groupedTranslations
+      this.data = this.dataOriginal
     },
 
     /**
@@ -1131,8 +1138,8 @@ export default {
      */
     translateWatson () {
       Loading.show()
-
-      this.translateValue(this.edit.text, 'pt-BR', 'en-US', this.edit.langTarget)
+      // emilia str.split("-")[0] Watson não está aceitando es-AR e es-CLe
+      this.translateValue(this.edit.text, 'pt-BR', 'en-US', this.edit.langTarget.split('-')[0])
         .then((translation) => {
           this.edit.text = translation
           return true
@@ -1158,12 +1165,15 @@ export default {
      * @return {string} Translated text
      */
     translateValue (text, langSource, langTarget, finalLang) {
-      return this.translateNew(text, langSource, langTarget).then(response => {
+      return this.translateNew(text, langSource.split('-')[0], langTarget.split('-')[0]).then(response => {
         let translation = response.data
+        // console.log(text)
+        // console.log(langSource)
+        // console.log(langTarget)
 
         // If the target language isn't the en-US and the final language isn't 'en-US' so need to translate to the final language
         if (langSource !== 'en-US' && finalLang !== 'en-US' && langSource !== 'en' && finalLang !== 'en') {
-          return this.translateNew(translation, 'en-US', finalLang).then(response => {
+          return this.translateNew(translation, 'en-US', finalLang.split('-')[0]).then(response => {
             return response.data
           })
         } else {
@@ -1199,14 +1209,24 @@ export default {
         _.each(this.selectedLanguages, (lang) => {
           // Check if some language was not transleted yet
           if (!item.lang[lang]) {
+            console.log('getLabelTranslated')
+            // console.log(item.lang['\'' + lang + '\''])
+            // console.log(item.lang[Object.keys(item.lang)[0]])
+            // console.log(item.lang[Object.keys(item.lang)[0]][0].value)
+            // console.log(Object.keys(item.lang)[0]) // em-US
+            // console.log(item.lang[lang]) undefined
             // Watson can translate any language to english and english to any language, so if the target is not english and the source is not english then translate to english first
             let text = item.lang['en-US'] ? item.lang['en-US'][0].value : item.lang[Object.keys(item.lang)[0]][0].value
+            // console.log(text)
             let langSource = item.lang['en-US'] ? 'en-US' : item.lang[Object.keys(item.lang)[0]][0].language
+            // console.log(langSource)
             let langTarget = item.lang['en-US'] ? lang : 'en-US'
-
+            // console.log(langTarget)
             // Add all tradutions to a list o promises
             promises.push(this.translateValue(text, langSource, langTarget, lang)
               .then((translation) => {
+                // console.log('certo')
+                // console.log(translation)
                 return {
                   fileID: _.find(this.selectedFiles, item => { return item.language === lang }).id,
                   // group: item.lang[Object.keys(item.lang)[0]][0].group,
