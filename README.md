@@ -3,7 +3,7 @@
 > This project provide a way to store yours translations and manage json and resx files. This project use <a href="https://couchdb.apache.org/"> CouchDB </a> to store the translations and Watson from IBM to help with the translations.
 
 ## Watson Configuration
-Update the file in back/index.js and put your translation bluemix username and password
+Put the file ibm-credentials.env in the back folder
 
 ## Screenshot
 
