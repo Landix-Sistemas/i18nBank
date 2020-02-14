@@ -923,17 +923,18 @@ export default {
         let fileTranslations = translations[this.translationsWithConflict[pos].fileID]
         let editedLabelIndex = fileTranslations ? _.findIndex(fileTranslations, (item) => { return item.key === this.edit.data }) : -1
         fileTranslations[editedLabelIndex].value = this.translationsWithConflict[pos].valueDt
-        let promises = []
         let path = this.translationsWithConflict[pos].path
         // formats labels in the format needed to save the file
-        promises.push(this.formatJSONToFile(path.split('.').pop(), fileTranslations)
+        /* let promises = [] */
+        // emilia acho que não precisava desta variável bastava ser assim testar
+        /* promises.push( */ this.formatJSONToFile(path.split('.').pop(), fileTranslations)
           .then((newFileString) => {
             // write data to file
             return this.writeFile(path, newFileString)
           })
           .catch((err) => {
             return console.log(err)
-          }))
+          }) /* ) */
       } else {
         this.data[this.data.findIndex(el => el.name === this.edit.data)][this.edit.langTarget] = this.translationsWithConflict[pos].valueFile
         this.$axios.put(`/translation/${this.edit.data}/${this.edit.langTarget}/${this.translationsWithConflict[pos].valueFile}`)
@@ -1284,29 +1285,62 @@ export default {
                 .catch(() => {
                   return console.log('err')
                 })
-            } /* else {   // emilia gravar no banco CouchDB
+            } else {
               _.each(value, (item) => {
-                // Grava no banco
-                let lang = this.$gun.get(`language/${item.language}`)
-                let group = this.$gun.get(`group/${item.group}`)
-
-                let translationDB = this.$gun.get(`translation/${item.key}-${item.language}`)
-
-                translationDB.path('key').put(item.key)
-                translationDB.path('value').put(item.value)
-                translationDB.path('language').put(lang)
-                translationDB.path('group').put(group)
-
-                this.$gun.get(`translations`).set(translationDB)
-
-                this.translations.push({
-                  group: item.group,
-                  key: item.key,
-                  value: item.value,
-                  language: item.language
-                })
+                console.log(value)
+                // console.log(item)
+                // Save at database
+                this.$axios.get(`/translation/${item.key}`)
+                  .then((response) => {
+                    console.log('vai editar')
+                    console.log(`/translation/${item.key}/${item.language}/${item.value}`)
+                    this.$axios.put(`/translation/${item.key}/${item.language}/${item.value}`)
+                      .then((response) => {
+                        console.log(response)
+                        let pos = this.translations.findIndex(el => el.key === item.key && el.language === item.language)
+                        if (pos >= 0) {
+                          this.translations[pos].value = item.value
+                          this.translations[pos].inDataBase = true
+                        } else {
+                          let newTranslation
+                          newTranslation = {
+                            fileID: undefined,
+                            key: item.key,
+                            value: item.value,
+                            language: item.language,
+                            inDataBase: true
+                          }
+                          this.translations.push(newTranslation)
+                        }
+                      })
+                      .catch(() => {
+                        // alert('Erro ao editar tradução no banco')
+                        console.log('Erro ao editar tradução no banco')
+                      })
+                  })
+                  .catch(() => {
+                    this.$axios.post('/translation', { '_id': item.key, 'translations': [ { 'language': item.language, 'value': item.value } ] })
+                      .then((response) => {
+                        console.log('inseriu nova traducao')
+                        /* console.log(response)
+                        let newTranslation
+                        newTranslation = {
+                          fileID: undefined,
+                          key: item.key,
+                          value: item.value,
+                          language: item.language,
+                          inDataBase: true
+                        }
+                        console.log(newTranslation)
+                        this.translations.push(newTranslation) */
+                      })
+                      .catch(() => {
+                        // alert('Erro ao inserir nova traducao no banco')
+                        console.log('Erro ao inserir nova traducao no banco')
+                      })
+                  })
               })
-            } */
+            }
           })
           return true
         })
