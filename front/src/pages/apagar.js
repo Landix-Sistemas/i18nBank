@@ -1,24 +1,68 @@
-'use strict'
-require('dotenv').config()
+/* const fruitBasket = {
+  apple: 27,
+  grape: 0,
+  pear: 14
+}
 
-const LanguageTranslatorV3 = require('ibm-watson/language-translator/v3')
+const sleep = ms => {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
 
-/**
- * Instantiate the Watson Language Translator Service
- */
-const languageTranslator = new LanguageTranslatorV3({
-  username: process.env.LANGUAGE_TRANSLATOR_USERNAME || '<language_translator_username>',
-  password: process.env.LANGUAGE_TRANSLATOR_PASSWORD || '<language_translator_password>',
-  version: '2019-01-10'
-})
+const getNumFruit = fruit => {
+  return sleep(1000).then(v => fruitBasket[fruit])
+}
 
-languageTranslator.translate(
-  {
-    text: 'A sentença tem que ter um verbo',
-    source: 'pt',
-    target: 'en-US'
-  }).then(response => {
-  console.log(JSON.stringify(response.result.translations[0].translation, null, 2));
-}).catch(err => {
-  console.log('error: ', err)
-})
+const fruitsToGet = ['apple', 'grape', 'pear']
+
+const forLoop = async _ => {
+  console.log('Start')
+
+  for (let index = 0; index < fruitsToGet.length; index++) {
+    const fruit = fruitsToGet[index]
+    const numFruit = await getNumFruit(fruit)
+    console.log(numFruit)
+  }
+
+  console.log('End')
+} */
+// console.log(forLoop)
+
+const asyncIterable = {
+  [Symbol.asyncIterator] () {
+    return {
+      i: 0,
+      next () {
+        if (this.i < 3) {
+          return Promise.resolve({ value: this.i++, done: false });
+        }
+
+        return Promise.resolve({ done: true });
+      }
+    }
+  }
+};
+
+(async function () {
+  console.log(asyncIterable)
+  for await (let num of asyncIterable) {
+    console.log(num)
+  }
+})()
+
+/*
+const urls = [
+  'https://jsonplaceholder.typicode.com/todos/1',
+  'https://jsonplaceholder.typicode.com/todos/2',
+  'https://jsonplaceholder.typicode.com/todos/3'
+]
+
+async function getTodos () {
+  for (const [idx, url] of urls.entries()) {
+    const todo = await fetch(url)
+    console.log(`Received Todo ${idx + 1}:`, todo)
+  }
+
+  console.log('Finished!')
+}
+
+getTodos() */
