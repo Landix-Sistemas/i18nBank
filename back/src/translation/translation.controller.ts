@@ -40,7 +40,7 @@ export class TranslationController {
    * API to find a translation by it's ID.
    * @param {string} id The translation id.
    * @throws {NotFoundException} A translation with the given ID not exist.
-   * @returns {Promise<Language>} Promise object represents the translation.
+   * @returns {Promise<Translation>} Promise object represents the translation.
    */
   @Get(':id')
   @ApiOperation({ title: 'Find a specific translation' })
