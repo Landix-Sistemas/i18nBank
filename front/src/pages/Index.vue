@@ -12,7 +12,6 @@
         <q-card-section>
           <div class="row items-center justify-between filters">
             <div>
-              <!--<q-btn color="secondary" icon="add" v-if="translations.length" @click="newTranslationDialog = true">Nova label</q-btn>-->
               <q-btn color="secondary" icon="add" v-if="translations.length" @click="openTranslationDialog">Nova label</q-btn>
             </div>
             <div>
@@ -23,7 +22,6 @@
             </div>
             <div class="row items-center">
               <q-btn color="secondary" icon="filter_list" @click="filterIncomplete" v-if="translations.length">Incompletos</q-btn>
-              <!--<q-btn color="secondary" icon="filter_list" @click="filterComplete" v-if="translations.length">Todos</q-btn>-->
               <q-btn color="secondary" icon="filter_list" @click="filterAll" v-if="translations.length">Todos</q-btn>
               <q-input borderless dense debounce="300" v-model="filter" placeholder="Buscar" v-if="translations.length">
                 <template v-slot:prepend>
@@ -47,8 +45,7 @@
                     <q-td v-for="(lang) in selectedLanguages" :props="props" :key="lang">
                       {{props.row[lang] ? props.row[lang] : '-'}}
                       <q-btn small flat icon="edit" @click="editTranslation(props.row.name, props.row[lang], lang); editTranslationDialog = true"/>
-                      <!--<q-btn :id="'toDataBase' + props.row.name + lang" small flat icon="save_alt" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang)"/>-->
-                      <q-btn :id="'toDataBase' + props.row.name + lang" small flat icon="save_alt" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBaseNew(props.row.name, props.row[lang], lang, true)"/>
+                      <q-btn :id="'toDataBase' + props.row.name + lang" small flat icon="save_alt" v-if="props.row[lang] && !alreadyInDataBase(props.row.name, lang)" @click="addToDataBase(props.row.name, props.row[lang], lang, true)"/>
                       <q-btn :id="'solveConflict' + props.row.name + lang" small flat icon="report" v-if="props.row[lang] && withConflict(props.row.name, lang)" @click="solveConflict(props.row.name, props.row[lang], lang); solveConflictDialog = true"/>
                     </q-td>
                   </q-tr>
@@ -108,8 +105,8 @@
             <div class="col-md-6">
               <div class="col-md-12" v-for="(label, index) in newLabel.labels" :key="index">
                   <q-input :id="'newLabel' + index" v-model="label.model" :label="label.language">
-                    <template v-slot:after> <!-- emilia 16 -->
-                      <q-btn flat icon="translate" @click="translateWatsonNew(true, label.model, label.language)" v-if="label.language !== 'pt-BR'">
+                    <template v-slot:after>
+                      <q-btn flat icon="translate" @click="translateWatson(true, label.model, label.language)" v-if="label.language !== 'pt-BR'">
                         <q-tooltip anchor="bottom middle" self="top middle">Traduzir</q-tooltip>
                       </q-btn>
                     </template>
@@ -180,8 +177,7 @@
             <div class="col-md-9">
               <q-input filled bottom-slots v-model="edit.text" label="Digite a tradução ou digite em portugues e aperte no botão para traduzir" >
                 <template v-slot:after>
-                  <!--<q-btn flat icon="translate" @click="translateWatson" v-if="edit.langTarget !== 'pt-BR'">-->
-                    <q-btn flat icon="translate" @click="translateWatsonNew(false, edit.text, edit.langTarget)" v-if="edit.langTarget !== 'pt-BR'">
+                    <q-btn flat icon="translate" @click="translateWatson(false, edit.text, edit.langTarget)" v-if="edit.langTarget !== 'pt-BR'">
                     <q-tooltip anchor="bottom middle" self="top middle">Traduzir</q-tooltip>
                   </q-btn>
                 </template>
@@ -492,72 +488,12 @@ export default {
     /**
      * Save a translation at database
      *
-     * @param {string} chave - key.
-     * @param {string} data - data.
-     * @param {string} language - language.
-     */
-    /* addToDataBase (chave, data, language) {
-      console.log('chamou addToDataBase')
-      let name = 'toDataBase' + chave + language
-      this.$axios.get(`/translation/${chave}`)
-        .then((response) => {
-          this.$axios.put(`/translation/${chave}/${language}/${data}`)
-            .then((response) => {
-              console.log('put translation')
-              document.getElementById(name).classList.add('hidden')
-              let pos = this.translations.findIndex(el => el.key === chave && el.language === language)
-              if (pos >= 0) {
-                this.translations[pos].inDataBase = true
-              } else {
-                let newTranslation
-                newTranslation = {
-                  fileID: undefined,
-                  key: this.edit.data,
-                  value: this.edit.text,
-                  language: this.edit.langTarget,
-                  inDataBase: true
-                }
-                this.translations.push(newTranslation)
-              }
-            })
-            .catch(() => {
-              console.log('erro put translation')
-              // alert('Erro ao editar tradução no banco')
-            })
-        })
-        .catch(() => {
-          this.$axios.post('/translation', { '_id': chave, 'translations': [ { 'language': language, 'value': data } ] })
-            .then((response) => {
-              console.log('post translation')
-              // console.log('inseriu nova traducao')
-              let newTranslation
-              newTranslation = {
-                fileID: undefined,
-                key: chave,
-                value: data,
-                language: language,
-                inDataBase: true
-              }
-              this.translations.push(newTranslation)
-
-              document.getElementById(name).classList.add('hidden')
-            })
-            .catch(() => {
-              console.log('erro post translation')
-              // alert('Erro ao inserir nova traducao no banco')
-            })
-        })
-    }, */
-    // emilia 15
-    /**
-     * Save a translation at database
-     *
      * @param {string} key - key.
      * @param {string} text - text.
      * @param {string} language - language.
      * @param {boolean} displayAlert - identifies whether to display alert messages.
      */
-    async addToDataBaseNew (key, text, language, displayAlert) {
+    async addToDataBase (key, text, language, displayAlert) {
       try {
         const alreadyExists = await this.keyAlreadyExistsInDataBase(key)
         await this.putOrPostToDataBase(alreadyExists, key, text, language, displayAlert)
@@ -607,7 +543,7 @@ export default {
             }
             let pos = this.translations.findIndex(el => el.key === key && el.language === language)
             if (pos >= 0) {
-              this.translations[pos].value = text // emilia agora
+              this.translations[pos].value = text
               this.translations[pos].inDataBase = true
             } else {
               let newTranslation
@@ -866,50 +802,7 @@ export default {
             }))
         } else {
           // Save at database
-          this.addToDataBaseNew(this.edit.data, this.edit.text, this.edit.langTarget, true) // emilia agora
-          /* this.$axios.get(`/translation/${this.edit.data}`)
-            .then((response) => {
-              this.$axios.put(`/translation/${this.edit.data}/${this.edit.langTarget}/${this.edit.text}`)
-                .then((response) => {
-                  console.log(response)
-                  let pos = this.translations.findIndex(el => el.key === this.edit.data && el.language === this.edit.langTarget)
-                  if (pos >= 0) {
-                    this.translations[pos].value = this.edit.text
-                    this.translations[pos].inDataBase = true
-                  } else {
-                    let newTranslation
-                    newTranslation = {
-                      fileID: undefined,
-                      key: this.edit.data,
-                      value: this.edit.text,
-                      language: this.edit.langTarget,
-                      inDataBase: true
-                    }
-                    this.translations.push(newTranslation)
-                  }
-                })
-                .catch(() => {
-                  alert('Erro ao editar tradução no banco')
-                })
-            })
-            .catch(() => {
-              this.$axios.post('/translation', { '_id': this.edit.data, 'translations': [ { 'language': this.edit.langTarget, 'value': this.edit.text } ] })
-                .then((response) => {
-                  console.log('inseriu nova traducao')
-                  let newTranslation
-                  newTranslation = {
-                    fileID: undefined,
-                    key: this.edit.data,
-                    value: this.edit.text,
-                    language: this.edit.langTarget,
-                    inDataBase: true
-                  }
-                  this.translations.push(newTranslation)
-                })
-                .catch(() => {
-                  alert('Erro ao inserir nova traducao no banco')
-                })
-            }) */
+          this.addToDataBase(this.edit.data, this.edit.text, this.edit.langTarget, true)
         }
       })
       Promise.all(promises).then(() => {
@@ -1102,71 +995,19 @@ export default {
     },
 
     /**
-     * Get label that was not tranlated to all the languages.
-     *
-     * @return {void}
-     */
-    /* filterIncomplete () {
-      let filteredTranslations = []
-      _.each(this.groupedTranslations, (translation) => {
-        let incomplete = false
-        _.each(this.selectedLanguages, (lang) => {
-          if (!translation.lang[lang]) {
-            incomplete = true
-          }
-        })
-        if (incomplete) {
-          filteredTranslations.push(translation)
-        }
-      })
-      let incompletes = this.data.filter(a1 => filteredTranslations.find(a2 => a2.key === a1.name))
-      this.data = incompletes
-    }, */
-
-    /**
      * Clear all filters.
      *
      * @return {void}
      */
     filterAll () {
-      // this.filteredTranslations = this.groupedTranslations
       this.data = this.dataOriginal
     },
 
     /**
-     * Get label that was tranlated to all the languages.
+     * Open the dialog to add a new translation
      *
      * @return {void}
      */
-    /* filterComplete () {
-      this.data = this.dataOriginal
-    }, */
-
-    /**
-     * Translate from portugues (Brazil) to any language
-     *
-     * @return {void}
-     */
-    translateWatson () {
-      Loading.show()
-      // Watson does not accept es-AR and es-CLe
-      this.translateValue(this.edit.text, 'pt-BR', 'en-US', this.edit.langTarget.split('-')[0])
-        .then((translation) => {
-          this.edit.text = translation
-          return true
-        })
-        .catch(() => {
-          console.log('erro translateWatson 1')
-          return false
-        })
-        .then(() => {
-          Loading.hide()
-          return true
-        })
-        .catch(() => null)
-    },
-
-    // emilia 16
     openTranslationDialog () {
       this.newLabel = { group: '',
         key: '',
@@ -1179,7 +1020,14 @@ export default {
       this.newTranslationDialog = true
     },
 
-    translateWatsonNew (newLabel, model, language) {
+    /**
+     * Translate from portugues (Brazil) to any language
+     *
+     * @param {boolean} newLabel - identifies whether the call was made by registering a new label.
+     * @param {string} model - the text.
+     * @param {string} language - the target language.
+     */
+    translateWatson (newLabel, model, language) {
       Loading.show()
       // Watson does not accept es-AR and es-CLe
       this.translateValue(model, 'pt-BR', 'en-US', language.split('-')[0])
@@ -1261,7 +1109,6 @@ export default {
               .then((translation) => {
                 return {
                   fileID: _.find(this.selectedFiles, item => { return item.language === lang }).id,
-                  // group: item.lang[Object.keys(item.lang)[0]][0].group,
                   key: item.key,
                   value: translation,
                   language: lang
@@ -1318,10 +1165,13 @@ export default {
                   return console.log('err')
                 })
             } else {
+              // In the CouchDB database, a value for each language is stored in the string of the same key.
+              // Therefore, at the time of insertion, there must be no competition. Insertion
+              // of a string in a language needs to be completed for the next insertion to begin.
               (async function () {
                 for (let index = 0; index < value.length; index++) {
                   console.log('index: ' + index)
-                  await _this.addToDataBaseNew(value[index].key, value[index].value, value[index].language, false)
+                  await _this.addToDataBase(value[index].key, value[index].value, value[index].language, false)
                 }
               })()
             }
